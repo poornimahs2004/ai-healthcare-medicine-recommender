@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto min-h-[80vh] fade-in">
+    
+    <div class="glass-card p-4 mb-8 bg-white flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                <i data-lucide="file-clock" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800" data-i18n="hist_page_title">Medical Records</h2>
+                <p class="text-xs text-slate-500" data-i18n="hist_page_subtitle">Your past AI health assessments.</p>
+            </div>
+        </div>
+
+        <button onclick="clearHistory()" class="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-600 hover:text-white transition border border-red-100 group shadow-sm">
+            <i data-lucide="trash-2" class="w-4 h-4 group-hover:animate-bounce"></i> 
+            <span class="text-sm font-bold" data-i18n="btn_clear_hist">Clear History</span>
+        </button>
+    </div>
+
+    <div id="history-container" class="space-y-6">
+        <div class="text-center py-10 text-slate-400 animate-pulse">
+            <i data-lucide="loader" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
+            <span data-i18n="hist_loading">Loading records...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const uid = sessionStorage.getItem('token');
+
+    // --- 1. LOAD HISTORY ---
+    async function loadHistory() {
+        const container = document.getElementById('history-container');
+        
+        if (!uid) {
+            container.innerHTML = `<div class="text-center py-10 text-slate-400">Please login to view history.</div>`;
+            return;
+        }
+
+        try {
+            const res = await fetch(`/history?user_id=${uid}`);
+            const data = await res.json();
+
+            if (data.length === 0) {
+                // Empty State
+                const tDict = getTranslations();
+                container.innerHTML = `
+                    <div class="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300 opacity-70">
+                        <i data-lucide="clipboard-x" class="w-16 h-16 text-slate-200 mx-auto mb-4"></i>
+                        <p class="text-slate-500 font-medium" data-i18n="hist_no_record">${tDict.hist_no_record || "No records found."}</p>
+                        <a href="/dashboard" class="mt-4 inline-block text-blue-600 hover:underline text-sm flex justify-center items-center gap-1">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> New Checkup
+                        </a>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = ''; // Clear loading state
+            
+            // Render Cards
+            data.forEach(record => {
+                const isEmergency = record.disease.includes("EMERGENCY");
+                
+                // Create Card HTML
+                const cardHtml = `
+                <div class="glass-card p-6 bg-white border-l-4 ${isEmergency ? 'border-red-500' : 'border-blue-500'} shadow-sm hover:shadow-md transition hover:-translate-y-1 duration-200">
+                    <div class="flex justify-between items-start mb-4 border-b border-slate-50 pb-3">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider ${isEmergency ? 'text-red-500' : 'text-slate-400'} bg-slate-50 px-2 py-1 rounded">
+                                ${record.formatted_date}
+                            </span>
+                            <h3 class="text-xl font-bold ${isEmergency ? 'text-red-700' : 'text-slate-800'} mt-2">
+                                ${record.disease}
+                            </h3>
+                        </div>
+                        <div class="p-2 rounded-full ${isEmergency ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}">
+                            <i data-lucide="${isEmergency ? 'alert-triangle' : 'activity'}" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <p class="text-slate-600 text-sm leading-relaxed line-clamp-2">
+                            ${record.description.replace(/[#*]/g, '')}
+                        </p>
+                        
+                        <div class="grid md:grid-cols-2 gap-3 mt-3">
+                            ${record.medicine ? `
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <strong class="block text-blue-700 text-[10px] uppercase mb-1 tracking-wide flex items-center gap-1"><i data-lucide="pill" class="w-3 h-3"></i> Medicine</strong>
+                                <p class="text-slate-600 text-xs line-clamp-2">${record.medicine.replace(/[•*]/g, '')}</p>
+                            </div>` : ''}
+
+                            ${record.diet ? `
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <strong class="block text-green-700 text-[10px] uppercase mb-1 tracking-wide flex items-center gap-1"><i data-lucide="apple" class="w-3 h-3"></i> Diet</strong>
+                                <p class="text-slate-600 text-xs line-clamp-2">${record.diet.replace(/[•*]/g, '')}</p>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+                
+                container.innerHTML += cardHtml;
+            });
+            
+            lucide.createIcons();
+
+        } catch (e) {
+            container.innerHTML = `<div class="text-center text-red-400 py-10">Unable to load history. Check connection.</div>`;
+        }
+    }
+
+    // --- 2. CLEAR HISTORY FUNCTION ---
+    async function clearHistory() {
+        if (!uid) return;
+        
+        // Confirmation Dialog
+        if(!confirm("Are you sure? This will permanently delete all your health records from the database.")) return;
+
+        const btn = document.querySelector('button[onclick="clearHistory()"]');
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Deleting...`;
+        lucide.createIcons();
+
+        try {
+            const res = await fetch('/clear_history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: uid })
+            });
+
+            if (res.ok) {
+                // Refresh list (will show empty state)
+                loadHistory();
+            } else {
+                alert("Failed to delete records.");
+            }
+        } catch (e) {
+            alert("Network error.");
+        }
+        
+        btn.innerHTML = originalContent;
+        lucide.createIcons();
+    }
+
+    // Helper to get current translations
+    function getTranslations() {
+        const lang = localStorage.getItem('careai_lang') || "en-US";
+        return (typeof translations !== 'undefined') ? translations[lang] : {};
+    }
+
+    // Init
+    loadHistory();
+    const lang = localStorage.getItem('careai_lang') || "en-US"; 
+    if(typeof changeLanguage === 'function') changeLanguage(lang);
+</script>
+{% endblock %}

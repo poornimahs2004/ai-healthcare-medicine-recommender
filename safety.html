@@ -1,0 +1,171 @@
+{% extends "base.html" %} {% block content %}
+<div class="max-w-3xl mx-auto min-h-[80vh] fade-in">
+  <div class="text-center mb-10">
+    <div
+      class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 mb-4 shadow-sm"
+    >
+      <i data-lucide="shield-check" class="w-8 h-8"></i>
+    </div>
+    <h1 class="text-3xl font-bold text-slate-800 mb-2" data-i18n="safe_title">
+      Drug Interaction Checker
+    </h1>
+    <p class="text-slate-500" data-i18n="safe_subtitle">
+      Check if two medicines are safe to take together.
+    </p>
+  </div>
+
+  <div class="glass-card p-8 bg-white relative overflow-visible">
+    <div
+      class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white border-4 border-slate-50 rounded-full w-12 h-12 flex items-center justify-center shadow-md z-10 font-black text-slate-300 text-xs"
+    >
+      VS
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <div
+        class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center"
+      >
+        <i data-lucide="pill" class="w-6 h-6 text-blue-500 mx-auto mb-2"></i>
+        <input
+          id="drug-1"
+          type="text"
+          data-i18n="ph_drug1"
+          placeholder="e.g. Aspirin"
+          class="w-full text-center bg-white border border-slate-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-700 placeholder:font-normal"
+        />
+      </div>
+
+      <div
+        class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center"
+      >
+        <i
+          data-lucide="tablets"
+          class="w-6 h-6 text-purple-500 mx-auto mb-2"
+        ></i>
+        <input
+          id="drug-2"
+          type="text"
+          data-i18n="ph_drug2"
+          placeholder="e.g. Ibuprofen"
+          class="w-full text-center bg-white border border-slate-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-500 font-bold text-slate-700 placeholder:font-normal"
+        />
+      </div>
+    </div>
+
+    <button
+      onclick="checkSafety()"
+      id="btn-check"
+      class="w-full mt-8 bg-slate-800 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-slate-900 transition flex items-center justify-center gap-2"
+    >
+      <i data-lucide="scan-line" class="w-5 h-5"></i>
+      <span data-i18n="btn_check_safe">Check Safety</span>
+    </button>
+  </div>
+
+  <div id="safety-result" class="hidden mt-6 fade-in"></div>
+</div>
+
+<script>
+  // Helper to get translation
+  function getTrans(key, fallback) {
+    const lang = localStorage.getItem("careai_lang") || "en-US";
+    if (
+      typeof translations !== "undefined" &&
+      translations[lang] &&
+      translations[lang][key]
+    ) {
+      return translations[lang][key];
+    }
+    return fallback;
+  }
+
+  async function checkSafety() {
+    const d1 = document.getElementById("drug-1").value;
+    const d2 = document.getElementById("drug-2").value;
+
+    if (!d1 || !d2) return alert("Please enter two medicine names.");
+
+    const btn = document.getElementById("btn-check");
+    // Note: Inner text reset by render, so we save translation logic or just use spinner
+    btn.innerHTML = `<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Analyzing...`;
+    btn.disabled = true;
+
+    try {
+      const res = await fetch("/check_safety", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ drug1: d1, drug2: d2 }),
+      });
+      const data = await res.json();
+
+      if (data.status) renderSafety(data);
+      else alert("Analysis failed.");
+    } catch (e) {
+      alert("Connection Error");
+    }
+
+    const btnText = getTrans("btn_check_safe", "Check Safety");
+    btn.innerHTML = `<i data-lucide="scan-line" class="w-5 h-5"></i> <span>${btnText}</span>`;
+    btn.disabled = false;
+    lucide.createIcons();
+  }
+
+  function renderSafety(data) {
+    const container = document.getElementById("safety-result");
+    container.classList.remove("hidden");
+
+    // Color Logic
+    let bgClass = "bg-green-50 border-green-200 text-green-800";
+    let icon = "shield-check";
+    let titleColor = "text-green-600";
+
+    if (data.color === "red" || data.status === "Danger") {
+      bgClass = "bg-red-50 border-red-200 text-red-800";
+      icon = "siren";
+      titleColor = "text-red-600";
+    } else if (data.color === "yellow" || data.status === "Caution") {
+      bgClass = "bg-amber-50 border-amber-200 text-amber-800";
+      icon = "alert-triangle";
+      titleColor = "text-amber-600";
+    }
+
+    // Translated Labels
+    const t_status = getTrans("lbl_safe_status", "Interaction Status");
+    const t_bio = getTrans("lbl_bio_int", "Biological Interaction");
+
+    container.innerHTML = `
+            <div class="glass-card p-6 border-l-8 ${bgClass.replace(
+              "bg-",
+              "border-"
+            )}">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="p-3 bg-white rounded-full shadow-sm ${titleColor}">
+                        <i data-lucide="${icon}" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider opacity-70">${t_status}</span>
+                        <h2 class="text-3xl font-extrabold ${titleColor}">${
+      data.status
+    }</h2>
+                    </div>
+                </div>
+                
+                <div class="bg-white/50 p-4 rounded-xl border border-white/50 mb-4">
+                    <h4 class="font-bold text-sm opacity-70 mb-1">${t_bio}</h4>
+                    <p class="text-sm leading-relaxed">${data.interaction}</p>
+                </div>
+
+                <div class="flex items-start gap-2 text-sm font-medium">
+                    <i data-lucide="info" class="w-4 h-4 mt-0.5 opacity-70"></i>
+                    <p>${data.recommendation}</p>
+                </div>
+            </div>
+        `;
+    lucide.createIcons();
+  }
+
+  lucide.createIcons();
+  const lang = localStorage.getItem("careai_lang") || "en-US";
+  if (typeof changeLanguage === "function") changeLanguage(lang);
+</script>
+{% endblock %}

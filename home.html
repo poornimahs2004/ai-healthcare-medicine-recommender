@@ -1,0 +1,1052 @@
+{% extends "base.html" %} {% block content %}
+<div
+  class="glass-card p-8 bg-white max-w-4xl mx-auto fade-in relative overflow-hidden"
+>
+  <div
+    class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-blue-100 opacity-50 blur-3xl pointer-events-none"
+  ></div>
+
+  <div class="relative z-10">
+    <div class="flex justify-between items-end mb-6">
+      <div>
+        <h2
+          class="text-3xl font-bold mb-1 text-slate-800 flex items-center gap-3"
+        >
+          <i data-lucide="activity" class="text-blue-600"></i>
+          <span data-i18n="home_title">Health Check</span>
+        </h2>
+        <p class="text-slate-500" data-i18n="home_subtitle">
+          AI Assessment based on Age, Gender & Vitals.
+        </p>
+      </div>
+
+      <div class="flex gap-2">
+        <button
+          id="global-mute-btn"
+          onclick="toggleGlobalSound()"
+          class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-2 rounded-lg hover:bg-slate-200 transition flex items-center gap-2 border border-slate-200"
+        >
+          <i data-lucide="volume-2" id="mute-icon" class="w-4 h-4"></i>
+          <span id="mute-text">Sound: ON</span>
+        </button>
+
+        <button
+          onclick="simulateVitals()"
+          class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 transition flex items-center gap-2 border border-blue-100"
+        >
+          <i data-lucide="zap" class="w-3 h-3"></i>
+          <span data-i18n="btn_auto">Auto-Measure (Demo)</span>
+        </button>
+      </div>
+    </div>
+
+    <h3
+      class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1"
+      data-i18n="lbl_vitals"
+    >
+      Vital Signs
+    </h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div
+        class="p-4 rounded-xl bg-red-50 border border-red-100 hover:border-red-300 transition group relative"
+      >
+        <div class="flex items-center gap-2 mb-2 text-red-600">
+          <i data-lucide="thermometer" class="w-5 h-5"></i>
+          <span class="text-sm font-bold" data-i18n="lbl_temp">Temp</span>
+        </div>
+        <div class="flex items-end gap-1">
+          <input
+            id="v-temp"
+            type="number"
+            placeholder="98.6"
+            class="w-full bg-transparent text-2xl font-bold text-slate-700 outline-none border-b border-transparent focus:border-red-300 placeholder-slate-300"
+          /><span class="text-xs text-slate-400 mb-1">°F</span>
+        </div>
+      </div>
+      <div
+        class="p-4 rounded-xl bg-blue-50 border border-blue-100 hover:border-blue-300 transition group"
+      >
+        <div class="flex items-center gap-2 mb-2 text-blue-600">
+          <i data-lucide="heart-pulse" class="w-5 h-5"></i>
+          <span class="text-sm font-bold" data-i18n="lbl_bp">Sys BP</span>
+        </div>
+        <div class="flex items-end gap-1">
+          <input
+            id="v-sys"
+            type="number"
+            placeholder="120"
+            class="w-full bg-transparent text-2xl font-bold text-slate-700 outline-none border-b border-transparent focus:border-blue-300 placeholder-slate-300"
+          /><span class="text-xs text-slate-400 mb-1">mmHg</span>
+        </div>
+      </div>
+      <div
+        class="p-4 rounded-xl bg-pink-50 border border-pink-100 hover:border-pink-300 transition group"
+      >
+        <div class="flex items-center gap-2 mb-2 text-pink-600">
+          <i data-lucide="activity" class="w-5 h-5"></i>
+          <span class="text-sm font-bold" data-i18n="lbl_hr">Heart Rate</span>
+        </div>
+        <div class="flex items-end gap-1">
+          <input
+            id="v-hr"
+            type="number"
+            placeholder="72"
+            class="w-full bg-transparent text-2xl font-bold text-slate-700 outline-none border-b border-transparent focus:border-pink-300 placeholder-slate-300"
+          /><span class="text-xs text-slate-400 mb-1">bpm</span>
+        </div>
+      </div>
+      <div
+        class="p-4 rounded-xl bg-teal-50 border border-teal-100 hover:border-teal-300 transition group"
+      >
+        <div class="flex items-center gap-2 mb-2 text-teal-600">
+          <i data-lucide="wind" class="w-5 h-5"></i>
+          <span class="text-sm font-bold" data-i18n="lbl_spo2">SpO2</span>
+        </div>
+        <div class="flex items-end gap-1">
+          <input
+            id="v-spo2"
+            type="number"
+            placeholder="98"
+            class="w-full bg-transparent text-2xl font-bold text-slate-700 outline-none border-b border-transparent focus:border-teal-300 placeholder-slate-300"
+          /><span class="text-xs text-slate-400 mb-1">%</span>
+        </div>
+      </div>
+    </div>
+
+    <h3
+      class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1"
+      data-i18n="lbl_history"
+    >
+      Medical History
+    </h3>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+      <label class="cursor-pointer relative">
+        <input
+          type="checkbox"
+          class="peer sr-only"
+          id="h-diabetes"
+          value="Diabetes"
+        />
+        <div
+          class="p-3 rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition flex items-center gap-2"
+        >
+          <i data-lucide="droplet" class="w-4 h-4"></i>
+          <span class="text-sm font-medium" data-i18n="hist_diabetes"
+            >Diabetes</span
+          >
+        </div>
+      </label>
+      <label class="cursor-pointer relative">
+        <input
+          type="checkbox"
+          class="peer sr-only"
+          id="h-hypertension"
+          value="Hypertension"
+        />
+        <div
+          class="p-3 rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition flex items-center gap-2"
+        >
+          <i data-lucide="activity" class="w-4 h-4"></i>
+          <span class="text-sm font-medium" data-i18n="hist_bp"
+            >Hypertension</span
+          >
+        </div>
+      </label>
+      <label class="cursor-pointer relative">
+        <input
+          type="checkbox"
+          class="peer sr-only"
+          id="h-heart"
+          value="Heart Disease"
+        />
+        <div
+          class="p-3 rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition flex items-center gap-2"
+        >
+          <i data-lucide="heart" class="w-4 h-4"></i>
+          <span class="text-sm font-medium" data-i18n="hist_heart"
+            >Heart Disease</span
+          >
+        </div>
+      </label>
+      <label class="cursor-pointer relative">
+        <input
+          type="checkbox"
+          class="peer sr-only"
+          id="h-asthma"
+          value="Asthma"
+        />
+        <div
+          class="p-3 rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition flex items-center gap-2"
+        >
+          <i data-lucide="wind" class="w-4 h-4"></i>
+          <span class="text-sm font-medium" data-i18n="hist_asthma"
+            >Asthma</span
+          >
+        </div>
+      </label>
+      <label class="cursor-pointer relative">
+        <input
+          type="checkbox"
+          class="peer sr-only"
+          id="h-allergies"
+          value="Allergies"
+        />
+        <div
+          class="p-3 rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition flex items-center gap-2"
+        >
+          <i data-lucide="alert-circle" class="w-4 h-4"></i>
+          <span class="text-sm font-medium" data-i18n="hist_allergy"
+            >Allergies</span
+          >
+        </div>
+      </label>
+      <label class="cursor-pointer relative">
+        <input
+          type="checkbox"
+          class="peer sr-only"
+          id="h-meds"
+          value="Current Medications"
+        />
+        <div
+          class="p-3 rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition flex items-center gap-2"
+        >
+          <i data-lucide="pill" class="w-4 h-4"></i>
+          <span class="text-sm font-medium" data-i18n="hist_meds"
+            >Current Meds</span
+          >
+        </div>
+      </label>
+
+      <label class="cursor-pointer relative">
+        <input
+          type="checkbox"
+          class="peer sr-only"
+          id="h-thyroid"
+          value="Thyroid Disorder"
+        />
+        <div
+          class="p-3 rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition flex items-center gap-2"
+        >
+          <i data-lucide="activity" class="w-4 h-4"></i>
+          <span class="text-sm font-medium">Thyroid</span>
+        </div>
+      </label>
+
+      <label class="cursor-pointer relative">
+        <input
+          type="checkbox"
+          class="peer sr-only"
+          id="h-arthritis"
+          value="Arthritis"
+        />
+        <div
+          class="p-3 rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition flex items-center gap-2"
+        >
+          <i data-lucide="bone" class="w-4 h-4"></i>
+          <span class="text-sm font-medium">Arthritis</span>
+        </div>
+      </label>
+    </div>
+
+    <h3
+      class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1"
+      data-i18n="lbl_patient"
+    >
+      Patient Details & Symptoms
+    </h3>
+    <div class="flex flex-col md:flex-row gap-4 mb-4">
+      <div class="w-full md:w-24 relative">
+        <label
+          class="text-[10px] font-bold text-slate-400 absolute top-2 left-3 uppercase"
+          data-i18n="lbl_age"
+          >Age</label
+        >
+        <input
+          id="cp-age"
+          type="number"
+          value="30"
+          class="w-full pt-6 pb-2 px-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white font-bold text-lg"
+        />
+      </div>
+      <div class="w-full md:w-32 relative">
+        <label
+          class="text-[10px] font-bold text-slate-400 absolute top-2 left-3 uppercase"
+          data-i18n="lbl_gender"
+          >Gender</label
+        >
+        <select
+          id="cp-gender"
+          class="w-full pt-6 pb-2 px-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white font-bold text-slate-700 appearance-none"
+        >
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+        <i
+          data-lucide="chevron-down"
+          class="absolute right-3 bottom-3 w-4 h-4 text-slate-400 pointer-events-none"
+        ></i>
+      </div>
+      <div class="flex-grow relative">
+        <input
+          id="cp-search"
+          type="text"
+          data-i18n="ph_symptom"
+          placeholder="Type a symptom (e.g., Chest Pain, Nausea)..."
+          class="w-full p-4 pl-12 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 transition bg-slate-50 focus:bg-white shadow-sm"
+          oninput="filterS(this.value)"
+        />
+        <i
+          data-lucide="search"
+          class="absolute left-4 top-4 text-slate-400 w-5 h-5"
+        ></i>
+        <button
+          id="mic-plan"
+          onclick="toggleVoice('cp-search', 'mic-plan')"
+          class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition"
+        >
+          <i data-lucide="mic" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="selected-container"
+      class="flex flex-wrap gap-2 mb-4 min-h-[40px]"
+    ></div>
+    <div
+      id="s-box"
+      class="max-h-40 overflow-y-auto border border-slate-100 rounded-xl p-2 mb-8 grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50"
+    ></div>
+
+    <button
+      onclick="getPlan()"
+      id="analyze-btn"
+      class="w-full colorful-btn py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 hover:scale-[1.01] transition-transform"
+    >
+      <span data-i18n="btn_analyze">Analyze Health Data</span>
+      <i data-lucide="arrow-right" class="w-5 h-5"></i>
+    </button>
+  </div>
+</div>
+
+<div
+  id="res-box"
+  class="hidden glass-card p-8 bg-white max-w-4xl mx-auto mt-8 border-t-8 border-blue-500 fade-in shadow-2xl"
+>
+  <div
+    class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-6 border-b border-slate-100"
+  >
+    <div>
+      <span
+        class="text-xs font-bold text-slate-400 uppercase tracking-wider"
+        data-i18n="lbl_result_title"
+        >Analysis Result</span
+      >
+      <h3
+        id="r-disease"
+        class="text-3xl font-extrabold text-slate-800 mt-1"
+      ></h3>
+    </div>
+
+    <div class="flex flex-col items-end gap-2 mt-4 md:mt-0">
+      <div
+        class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200"
+      >
+        <button
+          onclick="ttsControl('play')"
+          class="p-2 rounded-lg hover:bg-white hover:text-blue-600 text-slate-500 transition"
+          title="Play"
+        >
+          <i data-lucide="play" class="w-5 h-5"></i>
+        </button>
+        <button
+          onclick="ttsControl('pause')"
+          class="p-2 rounded-lg hover:bg-white hover:text-blue-600 text-slate-500 transition"
+          title="Pause"
+        >
+          <i data-lucide="pause" class="w-5 h-5"></i>
+        </button>
+        <button
+          onclick="ttsControl('stop')"
+          class="p-2 rounded-lg hover:bg-white hover:text-red-600 text-slate-500 transition"
+          title="Stop"
+        >
+          <i data-lucide="square" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <button
+        onclick="downloadReport()"
+        class="bg-slate-800 text-white hover:bg-slate-900 px-5 py-3 rounded-xl font-medium text-sm flex items-center gap-2 transition shadow-lg w-full md:w-auto justify-center"
+      >
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span data-i18n="btn_download">Download PDF</span>
+      </button>
+    </div>
+  </div>
+  <div id="r-content" class="space-y-6"></div>
+</div>
+<div id="panel-med" class="side-panel panel-left">
+    <div class="flex justify-between items-center mb-4 border-b pb-2">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <i data-lucide="pill" class="text-blue-600"></i> Pharmacy
+        </h3>
+        <button onclick="closePanels()" class="text-slate-400 hover:text-red-500">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+    <div id="med-shopping-list" class="space-y-2"></div>
+</div>
+
+<div id="panel-herb" class="side-panel panel-right">
+    <div class="flex justify-between items-center mb-4 border-b pb-2">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <i data-lucide="leaf" class="text-green-600"></i> Natural Store
+        </h3>
+        <button onclick="closePanels()" class="text-slate-400 hover:text-red-500">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+    <div id="herb-shopping-list" class="space-y-2"></div>
+</div>
+
+<script>
+  const SYMPTOMS = [
+    // A-C
+    "Abdominal Pain",
+    "Acidity",
+    "Acne",
+    "Anxiety",
+    "Back Pain",
+    "Bad Breath",
+    "Balance Issues",
+    "Black Stools",
+    "Bleeding Gums",
+    "Blister",
+    "Bloating",
+    "Blood in Urine",
+    "Blurry Vision",
+    "Body Ache",
+    "Bruising",
+    "Burning Sensation",
+    "Chest Pain",
+    "Chills",
+    "Cold Hands/Feet",
+    "Confusion",
+    "Congestion",
+    "Constipation",
+    "Cough",
+    "Cramps",
+
+    // D-F
+    "Dandruff",
+    "Dark Urine",
+    "Dehydration",
+    "Depression",
+    "Diarrhea",
+    "Difficulty Swallowing",
+    "Dizziness",
+    "Dry Eyes",
+    "Dry Mouth",
+    "Dry Skin",
+    "Ear Pain",
+    "Excessive Hunger",
+    "Excessive Thirst",
+    "Eye Redness",
+    "Fainting",
+    "Fatigue",
+    "Fever",
+    "Frequent Urination",
+
+    // G-L
+    "Gas",
+    "Hair Loss",
+    "Hallucinations",
+    "Headache",
+    "Heart Palpitations",
+    "Heartburn",
+    "High Fever",
+    "Hip Pain",
+    "Hives",
+    "Hoarseness",
+    "Indigestion",
+    "Insomnia",
+    "Irregular Periods",
+    "Irritability",
+    "Itching",
+    "Joint Pain",
+    "Knee Pain",
+    "Leg Pain",
+    "Lethargy",
+    "Loss of Appetite",
+    "Loss of Smell",
+    "Loss of Taste",
+    "Low Energy",
+
+    // M-R
+    "Memory Loss",
+    "Migraine",
+    "Mood Swings",
+    "Morning Stiffness",
+    "Mouth Ulcers",
+    "Muscle Pain",
+    "Muscle Spasms",
+    "Muscle Weakness",
+    "Nausea",
+    "Neck Pain",
+    "Night Sweats",
+    "Nosebleed",
+    "Numbness",
+    "Obesity",
+    "Pale Skin",
+    "Panic Attacks",
+    "Peeling Skin",
+    "Pimples",
+    "Rash",
+    "Restlessness",
+    "Runny Nose",
+
+    // S-Z
+    "Scaly Skin",
+    "Shivering",
+    "Shortness of Breath",
+    "Skin Peeling",
+    "Skin Redness",
+    "Sleepiness",
+    "Sneezing",
+    "Sore Throat",
+    "Stiff Neck",
+    "Stomach Pain",
+    "Sweating",
+    "Swelling",
+    "Swollen Glands",
+    "Swollen Legs",
+    "Tremors",
+    "Unexplained Weight Loss",
+    "Vertigo",
+    "Vomiting",
+    "Watery Eyes",
+    "Weakness",
+    "Weight Gain",
+    "Wheezing",
+    "Yellow Skin (Jaundice)",
+    "Yellow Urine",
+  ];
+  let selectedSymptoms = [];
+  let lastPlanText = "";
+
+  // --- AUDIO STATE ---
+  let isSoundEnabled = true;
+  function toggleGlobalSound() {
+    isSoundEnabled = !isSoundEnabled;
+    const btn = document.getElementById("global-mute-btn");
+    const text = document.getElementById("mute-text");
+    const icon = document.getElementById("mute-icon");
+    if (isSoundEnabled) {
+      btn.className =
+        "text-xs font-bold text-slate-600 bg-slate-100 px-3 py-2 rounded-lg hover:bg-slate-200 transition flex items-center gap-2 border border-slate-200";
+      text.innerText = "Sound: ON";
+      icon.outerHTML = `<i data-lucide="volume-2" id="mute-icon" class="w-4 h-4"></i>`;
+    } else {
+      btn.className =
+        "text-xs font-bold text-red-600 bg-red-50 px-3 py-2 rounded-lg hover:bg-red-100 transition flex items-center gap-2 border border-red-200";
+      text.innerText = "Sound: OFF";
+      icon.outerHTML = `<i data-lucide="volume-x" id="mute-icon" class="w-4 h-4"></i>`;
+      window.speechSynthesis.cancel();
+    }
+    lucide.createIcons();
+  }
+
+  function ttsControl(action) {
+    if (!window.speechSynthesis) return;
+    if (action === "stop") window.speechSynthesis.cancel();
+    else if (action === "pause") window.speechSynthesis.pause();
+    else if (action === "play") {
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+      else {
+        window.speechSynthesis.cancel();
+        speakResult();
+      }
+    }
+  }
+
+  function speakResult() {
+    if (!isSoundEnabled || !lastPlanText) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(lastPlanText);
+    u.lang = document.getElementById("lang-select").value;
+    window.speechSynthesis.speak(u);
+  }
+
+  function simulateVitals() {
+    document.getElementById("v-temp").value = (
+      97.5 +
+      Math.random() * 1.5
+    ).toFixed(1);
+    document.getElementById("v-sys").value = Math.floor(
+      110 + Math.random() * 20
+    );
+    document.getElementById("v-hr").value = Math.floor(65 + Math.random() * 20);
+    document.getElementById("v-spo2").value = Math.floor(
+      96 + Math.random() * 4
+    );
+    const lang = localStorage.getItem("careai_lang") || "en-US";
+    if (typeof changeLanguage === "function") changeLanguage(lang);
+  }
+
+  // --- MAIN ANALYSIS ---
+  async function getPlan() {
+    // Inside getPlan() function...
+    if (document.getElementById("h-thyroid").checked)
+      history.push("Thyroid Disorder");
+    if (document.getElementById("h-arthritis").checked)
+      history.push("Arthritis");
+    if (selectedSymptoms.length === 0)
+      return alert("Please select at least one symptom.");
+    const btn = document.getElementById("analyze-btn");
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Analyzing...`;
+    btn.disabled = true;
+    lucide.createIcons();
+
+    const age = document.getElementById("cp-age").value || 30;
+    const gender = document.getElementById("cp-gender").value || "Male";
+    const lang = document.getElementById("lang-select").value;
+
+    const vitals = {
+      temperature: document.getElementById("v-temp").value,
+      systolic_bp: document.getElementById("v-sys").value,
+      heart_rate: document.getElementById("v-hr").value,
+      spo2: document.getElementById("v-spo2").value,
+    };
+
+    // --- NEW: GATHER HISTORY ---
+    const history = [];
+    if (document.getElementById("h-diabetes").checked) history.push("Diabetes");
+    if (document.getElementById("h-hypertension").checked)
+      history.push("Hypertension");
+    if (document.getElementById("h-heart").checked)
+      history.push("Heart Disease");
+    if (document.getElementById("h-asthma").checked) history.push("Asthma");
+    if (document.getElementById("h-allergies").checked)
+      history.push("Allergies");
+    if (document.getElementById("h-meds").checked)
+      history.push("Currently on Medication");
+
+    try {
+      const res = await fetch("/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symptoms: selectedSymptoms,
+          age,
+          gender,
+          user_id: sessionStorage.getItem("token"),
+          language: lang,
+          vitals,
+          history, // Added History
+        }),
+      });
+      if (!res.ok) throw new Error("Server Error");
+      const data = await res.json();
+      renderResultCard(data);
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+
+    btn.innerHTML = oldHtml;
+    btn.disabled = false;
+    lucide.createIcons();
+  }
+
+  function renderResultCard(data) {
+    window.lastReportData = data;
+    const resBox = document.getElementById("res-box");
+    const content = document.getElementById("r-content");
+
+    // 1. Helper to extract Bold Words (Ingredients/Meds)
+    const extractKeywords = (text) => {
+      if (!text) return [];
+      // Regex to find text between **asterisks**
+      const matches = text.match(/\*\*(.*?)\*\*/g);
+      return matches ? matches.map((m) => m.replace(/\*\*/g, "")) : [];
+    };
+
+    // 2. Populate Side Panels
+    populateSidePanels(data);
+
+    // 3. Standard Rendering (Same as before)
+    const safeFormat = (text) => {
+      if (!text) return "No info.";
+      let clean = text.replace(/•/g, "\n\n• ").replace(/: /g, ":\n");
+      return typeof marked !== "undefined" ? marked.parse(clean) : text;
+    };
+
+    if (data.is_emergency) {
+      resBox.className =
+        "glass-card p-8 bg-red-50 max-w-4xl mx-auto mt-8 border-t-8 border-red-600 fade-in shadow-2xl";
+      document.getElementById(
+        "r-disease"
+      ).innerHTML = `<i data-lucide="alert-triangle" class="text-red-600 inline mr-2"></i> ${data.disease}`;
+    } else {
+      resBox.className =
+        "glass-card p-8 bg-white max-w-4xl mx-auto mt-8 border-t-8 border-blue-500 fade-in shadow-2xl";
+      document.getElementById("r-disease").innerHTML = data.disease;
+    }
+
+    lastPlanText = `Diagnosis: ${data.disease}. Description: ${data.description}. Medicine: ${data.medicine}. Precautions: ${data.precautions}`;
+
+    content.innerHTML = `
+            <div class="mb-8"><h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">2. Description</h4><div class="text-lg text-slate-600 leading-relaxed border-l-4 ${
+              data.is_emergency ? "border-red-300 pl-4" : "border-blue-200 pl-4"
+            } pro-text">${safeFormat(data.description)}</div></div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100 relative overflow-hidden"><div class="flex items-center gap-2 mb-3 text-blue-700 font-bold uppercase text-xs tracking-wide"><i data-lucide="pill" class="w-4 h-4"></i> 3. Medicine</div><div class="pro-text text-sm">${safeFormat(
+                  data.medicine
+                )}</div></div>
+                <div class="bg-slate-100 p-5 rounded-2xl border border-slate-200 relative overflow-hidden"><div class="flex items-center gap-2 mb-3 text-slate-700 font-bold uppercase text-xs tracking-wide"><i data-lucide="shield-alert" class="w-4 h-4"></i> 4. Precautions</div><div class="pro-text text-sm">${safeFormat(
+                  data.precautions
+                )}</div></div>
+                <div class="bg-amber-50 p-5 rounded-2xl border border-amber-100 relative overflow-hidden"><div class="flex items-center gap-2 mb-3 text-amber-700 font-bold uppercase text-xs tracking-wide"><i data-lucide="dumbbell" class="w-4 h-4"></i> 5. Workout</div><div class="pro-text text-sm">${safeFormat(
+                  data.workouts
+                )}</div></div>
+                <div class="bg-green-50 p-5 rounded-2xl border border-green-100 relative overflow-hidden"><div class="flex items-center gap-2 mb-3 text-green-700 font-bold uppercase text-xs tracking-wide"><i data-lucide="apple" class="w-4 h-4"></i> 6. Diet</div><div class="pro-text text-sm">${safeFormat(
+                  data.diet
+                )}</div></div>
+            </div>`;
+
+    resBox.classList.remove("hidden");
+    resBox.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (data.is_emergency) speakResult();
+    lucide.createIcons();
+  }
+
+  // --- NEW: SHOPPING LOGIC ---
+  function populateSidePanels(data) {
+    const medList = document.getElementById("med-shopping-list");
+    const herbList = document.getElementById("herb-shopping-list");
+    medList.innerHTML = "";
+    herbList.innerHTML = "";
+
+    const extractKeywords = (text) => {
+      if (!text) return [];
+      const matches = text.match(/\*\*(.*?)\*\*/g);
+      return matches ? matches.map((m) => m.replace(/\*\*/g, "")) : [];
+    };
+
+    // 1. Extract Medicines (Split string if "HERBAL" section exists in medicine text)
+    let medTextOnly = data.medicine || "";
+    let herbTextOnly = "";
+
+    if (medTextOnly.includes("HERBAL")) {
+      const parts = medTextOnly.split("HERBAL");
+      medTextOnly = parts[0];
+      herbTextOnly = parts[1]; // Add herbal part found in medicine string
+    }
+
+    const meds = extractKeywords(medTextOnly);
+    const diets = extractKeywords(data.diet + " " + herbTextOnly); // Combine Diet + Extra Herbs
+
+    // 2. Populate Left Panel (Pharmacy)
+    if (meds.length > 0) {
+      meds.forEach((item) => {
+        medList.innerHTML += `
+                    <div class="shop-card">
+                        <div class="font-bold text-slate-700 text-sm">${item}</div>
+                        <div class="flex gap-2 mt-2">
+                            <a href="https://www.1mg.com/search/all?name=${item}" target="_blank" class="shop-btn btn-1mg">1mg</a>
+                            <a href="https://pharmeasy.in/search/all?name=${item}" target="_blank" class="shop-btn btn-apollo">PharmEasy</a>
+                        </div>
+                    </div>`;
+      });
+      document.getElementById("panel-med").classList.add("panel-active");
+    }
+
+    // 3. Populate Right Panel (Herbal/Diet)
+    if (diets.length > 0) {
+      diets.forEach((item) => {
+        herbList.innerHTML += `
+                    <div class="shop-card">
+                        <div class="font-bold text-slate-700 text-sm">${item}</div>
+                        <div class="flex gap-2 mt-2">
+                            <a href="https://www.amazon.in/s?k=${item}" target="_blank" class="shop-btn btn-amazon">Amazon</a>
+                            <a href="https://www.flipkart.com/search?q=${item}" target="_blank" class="shop-btn btn-1mg" style="background:#e0f2fe; color:#0284c7;">Flipkart</a>
+                        </div>
+                    </div>`;
+      });
+      document.getElementById("panel-herb").classList.add("panel-active");
+    }
+  }
+
+  function closePanels() {
+    document.getElementById("panel-med").classList.remove("panel-active");
+    document.getElementById("panel-herb").classList.remove("panel-active");
+  }
+
+  async function downloadReport() {
+    const btn = document.querySelector('button[onclick="downloadReport()"]');
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Generating...`;
+
+    // Helper to get text safely
+    const getText = (id) => {
+      // Need to grab the raw markdown if possible, or innerText
+      // For now, we rely on lastPlanText having the data, OR we need to extract from the DOM elements
+      return "See report.";
+    };
+
+    // Grab the actual data stored in the UI variable (renderedData)
+    // NOTE: We will store the data in a global variable when rendering to access it here easily
+    const payload = {
+      disease: window.lastReportData.disease,
+      description: window.lastReportData.description,
+      medicine: window.lastReportData.medicine,
+      diet: window.lastReportData.diet,
+      workouts: window.lastReportData.workouts,
+      precautions: window.lastReportData.precautions,
+    };
+
+    try {
+      const res = await fetch("/download_report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const b = await res.blob();
+        const u = window.URL.createObjectURL(b);
+        const a = document.createElement("a");
+        a.href = u;
+        a.download = "CareAI_Report.pdf";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    btn.innerHTML = oldHtml;
+    lucide.createIcons();
+  }
+
+  function filterS(query) {
+    const box = document.getElementById("s-box");
+    box.innerHTML = "";
+    const filtered = SYMPTOMS.filter((s) =>
+      s.toLowerCase().includes(query.toLowerCase())
+    );
+    if (filtered.length === 0) {
+      box.innerHTML = `<div class="col-span-full text-center text-slate-400 py-4 text-sm">No match found.</div>`;
+      return;
+    }
+    filtered.forEach((s) => {
+      const isSelected = selectedSymptoms.includes(s);
+      const div = document.createElement("div");
+      div.className = `p-2 rounded-lg cursor-pointer text-sm font-medium transition flex items-center justify-between px-3 ${
+        isSelected
+          ? "bg-blue-100 text-blue-700 border border-blue-200"
+          : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+      }`;
+      div.innerHTML = `<span>${s}</span> ${
+        isSelected
+          ? '<i data-lucide="check" class="w-3 h-3"></i>'
+          : '<i data-lucide="plus" class="w-3 h-3 opacity-50"></i>'
+      }`;
+      div.onclick = () => toggleSymptom(s);
+      box.appendChild(div);
+    });
+    lucide.createIcons();
+  }
+
+  function toggleSymptom(s) {
+    if (selectedSymptoms.includes(s))
+      selectedSymptoms = selectedSymptoms.filter((item) => item !== s);
+    else selectedSymptoms.push(s);
+    renderTags();
+    filterS(document.getElementById("cp-search").value);
+  }
+
+  function renderTags() {
+    const container = document.getElementById("selected-container");
+    container.innerHTML = "";
+    selectedSymptoms.forEach((s) => {
+      const tag = document.createElement("div");
+      tag.className =
+        "bg-slate-800 text-white px-3 py-1.5 rounded-full text-sm flex items-center gap-2 shadow-md animate-pulse-once";
+      tag.innerHTML = `<span>${s}</span> <button onclick="toggleSymptom('${s}')" class="hover:text-red-300"><i data-lucide="x" class="w-3 h-3"></i></button>`;
+      container.appendChild(tag);
+    });
+    lucide.createIcons();
+  }
+
+  filterS("");
+</script>
+
+<style>
+  @keyframes pulse-once {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  .animate-pulse-once {
+    animation: pulse-once 0.2s ease-in-out;
+  }
+</style>
+
+<style>
+  @keyframes pulse-once {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  .animate-pulse-once {
+    animation: pulse-once 0.2s ease-in-out;
+  }
+
+  /* --- PRO TEXT FORMATTING --- */
+  .pro-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #334155;
+  }
+
+  /* List Formatting */
+  .pro-text ul,
+  .pro-text ol {
+    list-style-type: disc !important;
+    padding-left: 1.25rem !important;
+    margin-top: 0.5rem !important;
+  }
+
+  /* Spacing between points */
+  .pro-text li {
+    margin-bottom: 0.75rem !important; /* Adds space between items */
+    padding-left: 0.25rem !important;
+  }
+
+  /* --- HIGHLIGHT MEDICINE NAMES --- */
+  .pro-text strong {
+    font-weight: 700;
+    color: #1e40af; /* Dark Blue Text */
+    background-color: #dbeafe; /* Light Blue Highlight Background */
+    padding: 2px 6px; /* Spacing inside the highlight */
+    border-radius: 6px; /* Rounded corners */
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  .hover-card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Shopping Button Style */
+  .buy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #22c55e; /* Green */
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+    vertical-align: middle;
+    box-shadow: 0 2px 5px rgba(34, 197, 94, 0.3);
+  }
+  .buy-btn:hover {
+    background-color: #16a34a;
+    transform: translateY(-1px);
+  }
+  .buy-btn-med {
+    background-color: #3b82f6; /* Blue for Meds */
+    box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
+  }
+  .buy-btn-med:hover {
+    background-color: #2563eb;
+  }
+
+  /* SIDE PANELS */
+  .side-panel {
+    position: fixed;
+    top: 80px; /* Below Navbar */
+    bottom: 20px;
+    width: 260px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 40;
+    overflow-y: auto;
+  }
+
+  /* Hide by default */
+  .panel-left {
+    left: 20px;
+    transform: translateX(-300%);
+  }
+  .panel-right {
+    right: 20px;
+    transform: translateX(300%);
+  }
+
+  /* Show state */
+  .panel-active {
+    transform: translateX(0);
+  }
+
+  /* Product Card Style */
+  .shop-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  }
+  .shop-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 6px;
+    margin-top: 6px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .btn-1mg {
+    background: #ffe4e4;
+    color: #e11d48;
+  } /* Red-ish for 1mg */
+  .btn-apollo {
+    background: #ecfccb;
+    color: #4d7c0f;
+  } /* Green-ish for Apollo */
+  .btn-amazon {
+    background: #ffedd5;
+    color: #c2410c;
+  } /* Orange for Amazon */
+</style>
+{% endblock %}

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Care AI - Health Suite</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap");
+
+      /* --- VIBRANT LIGHT THEME VARIABLES --- */
+      :root {
+        --primary: #4338ca; /* Deep Indigo */
+        --primary-light: #6366f1;
+        --accent: #06b6d4; /* Cyan */
+        --text-main: #0f172a; /* Ink Black (High Contrast) */
+        --text-sub: #334155; /* Dark Slate (Readable) */
+        --card-bg: #ffffff; /* Pure White */
+        --bg-base: #f0f9ff; /* Light Blue Base */
+      }
+
+      /* --- CORE LAYOUT & BACKGROUND --- */
+      body {
+        font-family: "Outfit", sans-serif;
+        background-color: var(--bg-base);
+        color: var(--text-main);
+        /* Vibrant Moving Mesh Gradient */
+        background-image: radial-gradient(
+            at 0% 0%,
+            rgba(99, 102, 241, 0.3) 0px,
+            transparent 50%
+          ),
+          radial-gradient(
+            at 100% 0%,
+            rgba(6, 182, 212, 0.3) 0px,
+            transparent 50%
+          ),
+          radial-gradient(
+            at 100% 100%,
+            rgba(236, 72, 153, 0.3) 0px,
+            transparent 50%
+          ),
+          radial-gradient(
+            at 0% 100%,
+            rgba(59, 130, 246, 0.3) 0px,
+            transparent 50%
+          );
+        background-attachment: fixed;
+        background-size: 150% 150%;
+        animation: aurora 15s ease infinite alternate;
+
+        /* Google Translate Hide */
+        top: 0 !important;
+        position: static !important;
+      }
+
+      @keyframes aurora {
+        0% {
+          background-position: 0% 0%;
+        }
+        100% {
+          background-position: 100% 100%;
+        }
+      }
+
+      /* --- HIGH VISIBILITY CARDS --- */
+      .glass-card {
+        background: var(--card-bg);
+        border: 2px solid #e2e8f0; /* Solid border */
+        box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.1); /* Soft Drop Shadow */
+        border-radius: 1.5rem;
+        opacity: 0.98; /* Nearly Opaque for readability */
+      }
+
+      /* --- TEXT FIXES (MAXIMUM READABILITY) --- */
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      strong,
+      b {
+        color: #020617 !important; /* Pitch Black */
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+
+      p,
+      li,
+      span,
+      div {
+        color: #334155; /* Dark Slate - Easy to read */
+      }
+
+      /* Override Tailwind Grays to be Darker */
+      .text-slate-500,
+      .text-slate-600,
+      .text-slate-400 {
+        color: #475569 !important;
+      }
+
+      /* Make colored text pop */
+      .text-blue-600,
+      .text-blue-700 {
+        color: #2563eb !important;
+      }
+      .text-green-600,
+      .text-green-700 {
+        color: #16a34a !important;
+      }
+      .text-red-600,
+      .text-red-700 {
+        color: #dc2626 !important;
+      }
+
+      /* --- SOLID INPUTS --- */
+      input,
+      select,
+      textarea {
+        background-color: #ffffff !important;
+        border: 2px solid #cbd5e1 !important;
+        color: #0f172a !important;
+        border-radius: 0.75rem;
+        padding: 12px !important;
+        font-weight: 600;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2) !important;
+        outline: none;
+      }
+      ::placeholder {
+        color: #94a3b8 !important;
+        font-weight: 500;
+      }
+
+      /* --- VIBRANT BUTTONS --- */
+      .colorful-btn {
+        background: linear-gradient(135deg, #4f46e5, #06b6d4);
+        color: white !important;
+        font-weight: 700;
+        border: none;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        transition: all 0.2s;
+      }
+      .colorful-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(79, 70, 229, 0.6);
+        filter: brightness(1.1);
+      }
+
+      /* --- NAVIGATION --- */
+      nav {
+        background: #ffffff !important;
+        border-bottom: 1px solid #e2e8f0;
+        box-shadow: 0 4px 20px -10px rgba(0, 0, 0, 0.1);
+      }
+      .nav-item {
+        color: #64748b !important;
+        font-weight: 600;
+      }
+      .nav-item:hover {
+        color: var(--primary) !important;
+        background: #eef2ff;
+      }
+      .nav-active {
+        background: #e0e7ff !important;
+        color: var(--primary) !important;
+        border: 1px solid #c7d2fe !important;
+      }
+
+      /* --- CHAT BUBBLES --- */
+      .user-bubble {
+        background: linear-gradient(135deg, #4f46e5, #2563eb);
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+        padding: 12px 18px;
+        border-radius: 16px;
+      }
+      .user-bubble div {
+        color: white !important;
+      }
+
+      .ai-bubble {
+        background-color: #ffffff;
+        color: #0f172a !important;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+        padding: 12px 18px;
+        border-radius: 16px;
+      }
+
+      /* --- UTILS --- */
+      .fade-in {
+        animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .mic-active {
+        animation: pulse-red 1.5s infinite;
+        color: #ef4444 !important;
+        background: #fee2e2;
+        border: 1px solid #fca5a5;
+      }
+      @keyframes pulse-red {
+        0% {
+          box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+        }
+        100% {
+          box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+        }
+      }
+
+      /* --- FORCE HIDE GOOGLE --- */
+      .goog-te-banner-frame,
+      .skiptranslate,
+      #google_translate_element,
+      .goog-tooltip {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    </style>
+  </head>
+  <body class="text-slate-800 antialiased flex flex-col min-h-screen">
+    <nav
+      class="bg-white/90 backdrop-blur-md px-4 py-3 sticky top-0 z-50 border-b border-slate-200 shadow-sm"
+    >
+      <div
+        class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2"
+      >
+        <span class="font-bold text-2xl flex items-center gap-2 text-blue-700"
+          ><i data-lucide="activity"></i> Care AI</span
+        >
+        <div class="flex flex-wrap gap-2 items-center">
+          <select
+            id="lang-select"
+            onchange="translatePage(this.value)"
+            class="bg-slate-100 border border-slate-200 text-sm rounded-lg p-2 outline-none font-medium cursor-pointer hover:bg-slate-200 transition"
+          >
+            <option value="en">🇬🇧 English</option>
+            <option value="hi">🇮🇳 Hindi</option>
+            <option value="kn">🇮🇳 Kannada</option>
+            <option value="te">🇮🇳 Telugu</option>
+            <option value="ta">🇮🇳 Tamil</option>
+            <option value="ml">🇮🇳 Malayalam</option>
+            <option value="mr">🇮🇳 Marathi</option>
+            <option value="bn">🇮🇳 Bengali</option>
+            <option value="gu">🇮🇳 Gujarati</option>
+            <option value="pa">🇮🇳 Punjabi</option>
+          </select>
+
+          <a
+            href="/dashboard"
+            class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-blue-50 flex items-center gap-2 text-sm font-medium border border-transparent {{ 'nav-active' if active_page == 'home' else '' }}"
+          >
+            <i data-lucide="home" class="w-4 h-4"></i> <span>Home</span>
+          </a>
+          <a
+            href="/ai-chat"
+            class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-blue-50 flex items-center gap-2 text-sm font-medium border border-transparent {{ 'nav-active' if active_page == 'chat' else '' }}"
+          >
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+            <span>Chat</span>
+          </a>
+          <a
+            href="/vision"
+            class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-blue-50 flex items-center gap-2 text-sm font-medium border border-transparent {{ 'nav-active' if active_page == 'vision' else '' }}"
+          >
+            <i data-lucide="scan-eye" class="w-4 h-4"></i> <span>Vision</span>
+          </a>
+          <a
+            href="/diet"
+            class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-blue-50 flex items-center gap-2 text-sm font-medium border border-transparent {{ 'nav-active' if active_page == 'diet' else '' }}"
+          >
+            <i data-lucide="utensils" class="w-4 h-4"></i> <span>Diet</span>
+          </a>
+          <a
+            href="/safety"
+            class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-blue-50 flex items-center gap-2 text-sm font-medium border border-transparent {{ 'nav-active' if active_page == 'safety' else '' }}"
+          >
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>Safety</span>
+          </a>
+          <a
+            href="/locate"
+            class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-blue-50 flex items-center gap-2 text-sm font-medium border border-transparent {{ 'nav-active' if active_page == 'maps' else '' }}"
+          >
+            <i data-lucide="map-pin" class="w-4 h-4"></i> <span>Maps</span>
+          </a>
+          <a
+            href="/records"
+            class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-blue-50 flex items-center gap-2 text-sm font-medium border border-transparent {{ 'nav-active' if active_page == 'history' else '' }}"
+          >
+            <i data-lucide="history" class="w-4 h-4"></i> <span>History</span>
+          </a>
+
+          <button
+            onclick="logout()"
+            class="text-red-500 hover:text-red-700 px-3"
+          >
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div id="google_translate_element"></div>
+
+    <div class="max-w-5xl mx-auto p-4 md:p-8 w-full flex-grow">
+      {% block content %}{% endblock %}
+    </div>
+
+    <footer
+      class="bg-slate-50 border-t border-slate-200 py-4 mt-auto notranslate"
+    >
+      <div class="max-w-5xl mx-auto px-4 text-center">
+        <p class="text-[10px] md:text-xs text-slate-500 leading-relaxed">
+          <span class="font-bold text-slate-700">⚠️ Medical Disclaimer:</span>
+          Care AI is an AI tool for educational purposes only. It does not
+          provide medical diagnosis. Consult a doctor.
+          <span class="text-red-600 font-bold"
+            >In emergency, call 108/911 immediately.</span
+          >
+        </p>
+        <p class="text-[10px] text-slate-400 mt-2">
+          © 2025 Care AI Health Suite.
+        </p>
+      </div>
+    </footer>
+
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            includedLanguages: "en,hi,kn,te,ta,ml,mr,bn,gu,pa",
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false,
+          },
+          "google_translate_element"
+        );
+      }
+    </script>
+    <script
+      type="text/javascript"
+      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+    ></script>
+
+    <script>
+      const currentUserId = sessionStorage.getItem("token");
+      if (!currentUserId && window.location.pathname !== "/")
+        window.location.href = "/";
+
+      function logout() {
+        sessionStorage.removeItem("token");
+        window.location.href = "/";
+      }
+
+      // --- TRANSLATION LOGIC ---
+      function translatePage(langCode) {
+        document.cookie = `googtrans=/en/${langCode}; path=/;`;
+        localStorage.setItem("careai_lang_code", langCode);
+        window.location.reload();
+      }
+
+      // --- NUCLEAR OPTION: REMOVE GOOGLE BANNER ---
+      // This observer watches the HTML for the Google Banner and kills it instantly
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach(() => {
+          // 1. Find the iframe banner
+          const banner = document.querySelector(".goog-te-banner-frame");
+          if (banner) {
+            banner.style.display = "none";
+            banner.remove(); // Hard remove
+          }
+          // 2. Reset the body top margin/position that Google forces
+          if (document.body.style.top !== "0px") {
+            document.body.style.top = "0px";
+            document.body.style.position = "static";
+          }
+        });
+      });
+
+      // Start watching the body for changes
+      observer.observe(document.body, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        lucide.createIcons();
+        const savedLang = localStorage.getItem("careai_lang_code") || "en";
+        const select = document.getElementById("lang-select");
+        if (select) select.value = savedLang;
+
+        if (document.cookie.indexOf("googtrans") === -1 && savedLang !== "en") {
+          document.cookie = `googtrans=/en/${savedLang}; path=/;`;
+          window.location.reload();
+        }
+      });
+
+      function toggleVoice(inputId, btnId) {
+        if (!("webkitSpeechRecognition" in window)) return alert("Use Chrome");
+        const rec = new webkitSpeechRecognition();
+        const btn = document.getElementById(btnId);
+        const langMap = {
+          en: "en-US",
+          hi: "hi-IN",
+          kn: "kn-IN",
+          te: "te-IN",
+          ta: "ta-IN",
+          ml: "ml-IN",
+          mr: "mr-IN",
+          bn: "bn-IN",
+          gu: "gu-IN",
+          pa: "pa-IN",
+        };
+        const currentCode = document.getElementById("lang-select").value;
+        rec.lang = langMap[currentCode] || "en-US";
+        rec.start();
+        rec.onstart = () => btn.classList.add("mic-active");
+        rec.onend = () => btn.classList.remove("mic-active");
+        rec.onresult = (e) => {
+          document.getElementById(inputId).value = e.results[0][0].transcript;
+          if (typeof filterS === "function")
+            filterS(e.results[0][0].transcript);
+        };
+      }
+
+      function speakText(text) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text.replace(/[*#]/g, ""));
+        window.speechSynthesis.speak(u);
+      }
+    </script>
+  </body>
+</html>

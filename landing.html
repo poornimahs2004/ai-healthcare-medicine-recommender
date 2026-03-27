@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Care AI - Login</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #0f172a; /* Dark slate background base */
+        overflow: hidden; /* Prevent scrollbars from animated blobs */
+      }
+
+      /* --- Background Animations --- */
+      .aurora-blob {
+        position: absolute;
+        filter: blur(100px);
+        opacity: 0.4;
+        z-index: -1;
+        animation: moveBlob 25s infinite alternate ease-in-out;
+      }
+      .blob-1 {
+        top: -10%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: #4f46e5;
+        animation-delay: 0s;
+      } /* Indigo */
+      .blob-2 {
+        bottom: -10%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: #0ea5e9;
+        animation-delay: -5s;
+      } /* Sky Blue */
+      .blob-3 {
+        top: 40%;
+        left: 30%;
+        width: 400px;
+        height: 400px;
+        background: #10b981;
+        animation-delay: -12s;
+      } /* Emerald */
+
+      @keyframes moveBlob {
+        0% {
+          transform: translate(0, 0) scale(1) rotate(0deg);
+        }
+        50% {
+          transform: translate(100px, 50px) scale(1.1) rotate(180deg);
+        }
+        100% {
+          transform: translate(-50px, 100px) scale(0.9) rotate(360deg);
+        }
+      }
+
+      /* --- Glassmorphism Card Effect --- */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      }
+
+      /* --- Form Transition Animation classes --- */
+      .form-container {
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .form-container.hidden-anim {
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+        position: absolute; /* Take out of flow so they don't stack */
+        width: 100%;
+      }
+
+      /* Title Gradient */
+      .text-gradient {
+        background: linear-gradient(to right, #60a5fa, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    </style>
+  </head>
+
+  <body class="flex items-center justify-center h-screen relative">
+    <div class="aurora-blob blob-1"></div>
+    <div class="aurora-blob blob-2"></div>
+    <div class="aurora-blob blob-3"></div>
+
+    <div
+      class="w-full max-w-md p-8 glass-card rounded-2xl text-center z-10 mx-4 relative overflow-hidden"
+    >
+      <div class="mb-8">
+        <h1 class="text-5xl font-extrabold text-gradient mb-2 tracking-tight">
+          Care AI
+        </h1>
+        <p class="text-slate-300 text-lg">Your Intelligent Health Assistant</p>
+      </div>
+
+      <div class="relative" style="min-height: 320px">
+        <div id="login-box" class="form-container top-0 left-0">
+          <div class="space-y-4">
+            <input
+              id="l-email"
+              type="email"
+              placeholder="Email Address"
+              class="w-full bg-slate-900/50 text-white border border-slate-700/50 p-4 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-slate-500"
+            />
+            <input
+              id="l-pass"
+              type="password"
+              placeholder="Password"
+              class="w-full bg-slate-900/50 text-white border border-slate-700/50 p-4 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-slate-500 mb-2"
+            />
+          </div>
+
+          <button
+            onclick="auth('login')"
+            class="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-blue-500/30 hover:-translate-y-1 transition-all duration-300"
+          >
+            Sign In
+          </button>
+
+          <p id="msg" class="text-red-400 mt-4 text-sm font-medium"></p>
+
+          <div class="mt-8 pt-6 border-t border-slate-700/50">
+            <p class="text-slate-400 text-sm">Don't have an account?</p>
+            <button
+              onclick="toggleAuth()"
+              class="text-blue-400 font-semibold hover:text-blue-300 transition mt-2"
+            >
+              Create Account
+            </button>
+          </div>
+        </div>
+
+        <div id="reg-box" class="form-container hidden-anim top-0 left-0">
+          <div class="space-y-4">
+            <input
+              id="r-email"
+              type="email"
+              placeholder="Email Address"
+              class="w-full bg-slate-900/50 text-white border border-slate-700/50 p-4 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 transition-all placeholder:text-slate-500"
+            />
+            <input
+              id="r-phone"
+              type="tel"
+              placeholder="Phone Number"
+              class="w-full bg-slate-900/50 text-white border border-slate-700/50 p-4 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 transition-all placeholder:text-slate-500"
+            />
+            <input
+              id="r-pass"
+              type="password"
+              placeholder="Set Password"
+              class="w-full bg-slate-900/50 text-white border border-slate-700/50 p-4 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 transition-all placeholder:text-slate-500"
+            />
+          </div>
+
+          <button
+            onclick="auth('register')"
+            class="w-full mt-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-1 transition-all duration-300"
+          >
+            Create Account
+          </button>
+
+          <div class="mt-8 pt-6 border-t border-slate-700/50">
+            <p class="text-slate-400 text-sm">Already have an account?</p>
+            <button
+              onclick="toggleAuth()"
+              class="text-emerald-400 font-semibold hover:text-emerald-300 transition mt-2"
+            >
+              Back to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Improved toggle function for smooth transition
+      function toggleAuth() {
+        const loginBox = document.getElementById("login-box");
+        const regBox = document.getElementById("reg-box");
+        const msg = document.getElementById("msg");
+
+        msg.innerText = ""; // Clear errors on toggle
+
+        if (loginBox.classList.contains("hidden-anim")) {
+          // Show Login, Hide Register
+          regBox.classList.add("hidden-anim");
+          setTimeout(() => {
+            loginBox.classList.remove("hidden-anim");
+          }, 300); // Wait for fade out to finish
+        } else {
+          // Hide Login, Show Register
+          loginBox.classList.add("hidden-anim");
+          setTimeout(() => {
+            regBox.classList.remove("hidden-anim");
+          }, 300);
+        }
+      }
+
+      async function auth(type) {
+        // Visual feedback during loading
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+        btn.classList.add("opacity-70", "cursor-not-allowed");
+
+        const email = document.getElementById(
+          type === "login" ? "l-email" : "r-email"
+        ).value;
+        const pass = document.getElementById(
+          type === "login" ? "l-pass" : "r-pass"
+        ).value;
+        const phone =
+          type === "register" ? document.getElementById("r-phone").value : null;
+        const msgBox = document.getElementById("msg");
+
+        try {
+          const res = await fetch(`/auth/${type}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password: pass, phone }),
+          });
+          const d = await res.json();
+          if (res.ok && type === "login") {
+            sessionStorage.setItem("token", d.user_id);
+            // Smooth fade out before redirect
+            document.querySelector(".glass-card").style.transform =
+              "scale(0.95)";
+            document.querySelector(".glass-card").style.opacity = "0";
+            setTimeout(() => (window.location.href = "/dashboard"), 300);
+          } else if (res.ok) {
+            alert("Success! Account created. Please log in.");
+            toggleAuth();
+          } else {
+            msgBox.innerText = d.error || "An error occurred";
+          }
+        } catch (e) {
+          msgBox.innerText = "Connection Error. Please try again.";
+        } finally {
+          // Restore button state
+          btn.innerText = originalText;
+          btn.disabled = false;
+          btn.classList.remove("opacity-70", "cursor-not-allowed");
+        }
+      }
+    </script>
+
+    <div
+      class="fixed bottom-0 w-full glass-card border-t border-slate-700/30 py-3 z-20"
+    >
+      <p class="text-[11px] text-center text-slate-400 px-4">
+        ⚠️ <strong>Disclaimer:</strong> Care AI is an assistive tool for
+        educational purposes and not a substitute for professional medical
+        advice. Always consult a doctor.
+      </p>
+    </div>
+  </body>
+</html>

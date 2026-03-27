@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Care AI - Health Suite</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* UI Components */
+      .colorful-btn {
+        background: linear-gradient(135deg, #2563eb, #3b82f6, #059669);
+        color: white;
+        transition: all 0.2s;
+      }
+
+      .colorful-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+
+      .glass-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border-radius: 1rem;
+      }
+
+      .chat-bubble {
+        max-width: 85%;
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      .user-bubble {
+        background-color: #eff6ff;
+        color: #1e40af;
+        border-bottom-right-radius: 2px;
+        margin-left: auto;
+      }
+
+      .ai-bubble {
+        background-color: #ffffff;
+        color: #334155;
+        border-bottom-left-radius: 2px;
+        margin-right: auto;
+        border: 1px solid #e2e8f0;
+      }
+
+      .ai-bubble strong {
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      iframe {
+        width: 100%;
+        height: 450px;
+        border: none;
+        border-radius: 0.75rem;
+        background-color: #e2e8f0;
+      }
+
+      .nav-active {
+        background-color: #eff6ff;
+        color: #2563eb;
+        font-weight: 700;
+        border: 1px solid #bfdbfe !important;
+      }
+
+      .fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      .mic-active {
+        animation: pulse-red 1.5s infinite;
+        color: #ef4444 !important;
+        background-color: #fee2e2 !important;
+      }
+
+      @keyframes pulse-red {
+        0% {
+          box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+        }
+      }
+
+      /* VOICE CONTROLS FLOAT */
+      #voice-controls {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 10px;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        z-index: 1000;
+        transform: translateY(100px);
+        transition: transform 0.3s ease;
+      }
+
+      #voice-controls.show {
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+
+  <body class="text-slate-800 antialiased">
+    <div
+      id="page-welcome"
+      class="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-white"
+    >
+      <div
+        class="w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-8 text-white shadow-2xl animate-bounce"
+      >
+        <i data-lucide="heart-pulse" class="w-12 h-12"></i>
+      </div>
+      <h1 class="text-5xl font-extrabold text-slate-900 mb-4">Care AI</h1>
+      <p class="text-xl text-slate-500 mb-10 max-w-md mx-auto">
+        Your intelligent, multilingual health assistant.
+      </p>
+      <div class="flex gap-4">
+        <button
+          onclick="showPage('login')"
+          class="colorful-btn px-10 py-4 rounded-xl font-bold text-lg shadow-xl"
+        >
+          Login
+        </button>
+        <button
+          onclick="showPage('register')"
+          class="px-10 py-4 rounded-xl font-bold text-blue-600 border-2 border-blue-100 hover:bg-blue-50"
+        >
+          Register
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="page-login"
+      class="hidden min-h-screen flex items-center justify-center p-4 bg-slate-50"
+    >
+      <div
+        class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100"
+      >
+        <h2 class="text-3xl font-bold mb-8 text-center">Welcome Back</h2>
+        <input
+          id="l-email"
+          type="email"
+          placeholder="Email Address"
+          class="w-full bg-slate-50 border border-slate-200 p-4 mb-4 rounded-xl outline-none"
+        />
+        <input
+          id="l-pass"
+          type="password"
+          placeholder="Password"
+          class="w-full bg-slate-50 border border-slate-200 p-4 mb-6 rounded-xl outline-none"
+        />
+        <button
+          onclick="auth('login')"
+          class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 shadow-lg"
+        >
+          Sign In
+        </button>
+        <p id="l-msg" class="text-red-500 mt-4 text-sm text-center hidden"></p>
+        <button
+          onclick="showPage('welcome')"
+          class="w-full text-center text-slate-400 mt-6 text-sm hover:text-blue-600"
+        >
+          ← Back
+        </button>
+      </div>
+    </div>
+    <div
+      id="page-register"
+      class="hidden min-h-screen flex items-center justify-center p-4 bg-slate-50"
+    >
+      <div
+        class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100"
+      >
+        <h2 class="text-3xl font-bold mb-8 text-center">Create Account</h2>
+        <input
+          id="r-email"
+          type="email"
+          placeholder="Email Address"
+          class="w-full bg-slate-50 border border-slate-200 p-4 mb-4 rounded-xl outline-none"
+        />
+        <input
+          id="r-phone"
+          type="tel"
+          placeholder="Phone Number"
+          class="w-full bg-slate-50 border border-slate-200 p-4 mb-4 rounded-xl outline-none"
+        />
+        <input
+          id="r-pass"
+          type="password"
+          placeholder="Set Password"
+          class="w-full bg-slate-50 border border-slate-200 p-4 mb-6 rounded-xl outline-none"
+        />
+        <button
+          onclick="auth('register')"
+          class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg"
+        >
+          Register
+        </button>
+        <p id="r-msg" class="text-center mt-4 text-sm hidden"></p>
+        <button
+          onclick="showPage('welcome')"
+          class="w-full text-center text-slate-400 mt-6 text-sm hover:text-green-600"
+        >
+          ← Back
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="page-app"
+      class="hidden min-h-screen pb-20 bg-slate-50 flex flex-col"
+    >
+      <nav
+        class="bg-white/90 backdrop-blur-md px-4 py-3 sticky top-0 z-50 border-b border-slate-200 shadow-sm"
+      >
+        <div
+          class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2"
+        >
+          <span
+            class="font-bold text-2xl flex items-center gap-2 text-blue-700 tracking-tight"
+            ><i data-lucide="activity" class="text-blue-600"></i> Care AI</span
+          >
+          <div class="flex flex-wrap gap-2 items-center">
+            <select
+              id="lang-select"
+              class="bg-slate-100 border border-slate-200 text-slate-700 text-sm rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="en-US">🇬🇧 English</option>
+              <option value="kn-IN">🇮🇳 Kannada</option>
+              <option value="hi-IN">🇮🇳 Hindi</option>
+              <option value="te-IN">🇮🇳 Telugu</option>
+              <option value="ta-IN">🇮🇳 Tamil</option>
+            </select>
+            <button
+              id="btn-plan"
+              onclick="switchTab('plan')"
+              class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-blue-50 flex items-center gap-2 text-sm font-medium border border-transparent hover:border-blue-200"
+            >
+              <i data-lucide="home" class="w-4 h-4"></i> Home
+            </button>
+            <button
+              id="btn-chat"
+              onclick="switchTab('chat')"
+              class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-purple-50 flex items-center gap-2 text-sm font-medium border border-transparent hover:border-purple-200"
+            >
+              <i
+                data-lucide="message-circle"
+                class="w-4 h-4 text-purple-500"
+              ></i>
+              Chat
+            </button>
+            <button
+              id="btn-doctors"
+              onclick="switchTab('doctors')"
+              class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-green-50 flex items-center gap-2 text-sm font-medium border border-transparent hover:border-green-200"
+            >
+              <i data-lucide="map-pin" class="w-4 h-4 text-green-600"></i> Maps
+            </button>
+            <button
+              id="btn-history"
+              onclick="switchTab('history'); loadHistory()"
+              class="nav-item px-3 py-2 rounded-lg text-slate-600 hover:bg-blue-50 flex items-center gap-2 text-sm font-medium border border-transparent hover:border-blue-200"
+            >
+              <i data-lucide="history" class="w-4 h-4"></i> History
+            </button>
+            <button
+              onclick="logout()"
+              class="text-red-500 hover:text-red-700 px-3"
+            >
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div class="max-w-5xl mx-auto p-4 md:p-8 w-full flex-grow">
+        <div id="tab-plan" class="view-tab fade-in">
+          <div class="glass-card p-8 bg-white max-w-3xl mx-auto">
+            <h2
+              class="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-3"
+            >
+              <i data-lucide="stethoscope" class="text-blue-500"></i> Symptom
+              Checker
+            </h2>
+
+            <div
+              class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100"
+            >
+              <div>
+                <label class="text-xs font-bold text-slate-500 uppercase"
+                  >Temp (°F)</label
+                >
+                <input
+                  type="number"
+                  id="v-temp"
+                  placeholder="98.6"
+                  class="w-full bg-white border p-2 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-500 uppercase"
+                  >Sys BP</label
+                >
+                <input
+                  type="number"
+                  id="v-sys"
+                  placeholder="120"
+                  class="w-full bg-white border p-2 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-500 uppercase"
+                  >Heart Rate</label
+                >
+                <input
+                  type="number"
+                  id="v-hr"
+                  placeholder="72"
+                  class="w-full bg-white border p-2 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-500 uppercase"
+                  >SpO2 %</label
+                >
+                <input
+                  type="number"
+                  id="v-spo2"
+                  placeholder="98"
+                  class="w-full bg-white border p-2 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+              <input
+                id="cp-age"
+                type="number"
+                placeholder="Age"
+                class="border border-slate-200 p-3 rounded-xl w-full md:w-24 text-center outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div class="flex-grow relative">
+                <input
+                  id="cp-search"
+                  type="text"
+                  placeholder="Describe symptoms..."
+                  class="w-full border border-slate-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 pr-12"
+                  oninput="filterS(this.value)"
+                />
+                <button
+                  id="mic-plan"
+                  onclick="toggleVoice('cp-search', 'mic-plan')"
+                  class="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-blue-600 p-2 rounded-full transition"
+                >
+                  <i data-lucide="mic" class="w-5 h-5"></i>
+                </button>
+              </div>
+            </div>
+            <div
+              id="s-box"
+              class="h-48 overflow-y-auto border border-slate-100 p-4 rounded-xl mb-6 grid grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50"
+            ></div>
+            <button
+              onclick="getPlan()"
+              class="w-full colorful-btn py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2"
+            >
+              <span>Analyze Symptoms</span>
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div
+            id="res-box"
+            class="glass-card p-8 hidden mt-8 border-t-8 border-blue-500 fade-in bg-white max-w-3xl mx-auto"
+          >
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h3
+                  id="r-disease"
+                  class="text-3xl font-bold text-slate-900"
+                ></h3>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  onclick="speakResult()"
+                  class="bg-blue-100 text-blue-700 p-2 rounded-lg hover:bg-blue-200"
+                >
+                  <i data-lucide="volume-2" class="w-5 h-5"></i>
+                </button>
+                <button
+                  onclick="downloadReport()"
+                  class="bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-900 font-bold text-sm flex items-center gap-2"
+                >
+                  <i data-lucide="download" class="w-4 h-4"></i> PDF
+                </button>
+              </div>
+            </div>
+            <div id="r-content"></div>
+          </div>
+        </div>
+
+        <div id="tab-chat" class="view-tab hidden fade-in">
+          <div
+            class="glass-card p-0 overflow-hidden flex flex-col h-[600px] bg-white shadow-xl max-w-3xl mx-auto border border-slate-200"
+          >
+            <div
+              class="p-4 bg-slate-50 border-b border-slate-100 flex items-center gap-3"
+            >
+              <div
+                class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 shadow-sm"
+              >
+                <i data-lucide="bot"></i>
+              </div>
+              <h2 class="font-bold text-slate-800 text-lg">
+                Gemini Health Chat
+              </h2>
+            </div>
+            <div
+              id="chat-box"
+              class="flex-grow overflow-y-auto p-6 space-y-4 bg-white"
+            >
+              <div class="flex">
+                <div class="chat-bubble ai-bubble shadow-sm">
+                  Hello! Select a language and start speaking.
+                </div>
+              </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+              <div class="relative flex-grow">
+                <input
+                  id="c-in"
+                  type="text"
+                  class="w-full bg-white border border-slate-200 p-3 rounded-xl outline-none focus:border-purple-500 shadow-sm pr-12"
+                  placeholder="Type or speak..."
+                />
+                <button
+                  id="mic-chat"
+                  onclick="toggleVoice('c-in', 'mic-chat')"
+                  class="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-purple-600 p-2 rounded-full transition"
+                >
+                  <i data-lucide="mic" class="w-5 h-5"></i>
+                </button>
+              </div>
+              <button
+                onclick="sendChat()"
+                class="bg-purple-600 text-white p-3 rounded-xl hover:bg-purple-700 shadow-lg"
+              >
+                <i data-lucide="send" class="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-doctors" class="view-tab hidden fade-in">
+          <div class="glass-card p-6 bg-white">
+            <div
+              class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4"
+            >
+              <h2
+                class="text-2xl font-bold text-slate-800 flex items-center gap-3"
+              >
+                <div class="p-2 bg-red-100 rounded-lg text-red-500">
+                  <i data-lucide="map-pin"></i>
+                </div>
+                Nearby Care
+              </h2>
+              <button
+                onclick="getMyLocation()"
+                class="bg-red-50 text-red-600 px-5 py-2 rounded-xl font-bold hover:bg-red-100 flex items-center gap-2"
+              >
+                <i data-lucide="navigation" class="w-4 h-4"></i> Use GPS
+              </button>
+            </div>
+            <div class="flex flex-col md:flex-row gap-3 mb-6">
+              <input
+                id="d-spec"
+                placeholder="Specialty (e.g. Dentist)"
+                class="border border-slate-200 p-3 rounded-xl flex-grow outline-none focus:border-blue-500"
+              />
+              <input
+                id="d-loc"
+                placeholder="City / Zip Code"
+                class="border border-slate-200 p-3 rounded-xl flex-grow outline-none focus:border-blue-500"
+              />
+              <button
+                onclick="findDocs()"
+                class="bg-slate-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-900"
+              >
+                Search
+              </button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="lg:col-span-1 order-2 lg:order-1">
+                <h3
+                  class="font-bold text-slate-400 text-xs uppercase tracking-wider mb-3"
+                >
+                  Verified Locations
+                </h3>
+                <div
+                  id="d-list"
+                  class="space-y-3 h-[400px] overflow-y-auto pr-2"
+                >
+                  <p class="text-slate-400 text-center mt-10">
+                    Use search or GPS.
+                  </p>
+                </div>
+              </div>
+              <div class="lg:col-span-2 order-1 lg:order-2">
+                <div
+                  class="relative rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-100 h-[450px]"
+                >
+                  <iframe
+                    id="gmap-frame"
+                    src="https://maps.google.com/maps?q=Hospital&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-history" class="view-tab hidden fade-in">
+          <div class="glass-card p-8 bg-white max-w-4xl mx-auto">
+            <h2
+              class="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2"
+            >
+              <i data-lucide="history" class="text-blue-500"></i> Medical
+              History
+            </h2>
+            <div id="hist-list" class="space-y-4">
+              <p class="text-slate-400 text-center py-10">Loading records...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="voice-controls" class="hidden">
+      <button
+        onclick="pauseVoice()"
+        class="p-3 rounded-full bg-gray-100 hover:bg-gray-200 text-slate-600"
+      >
+        <i data-lucide="pause" class="w-5 h-5"></i>
+      </button>
+      <button
+        onclick="resumeVoice()"
+        class="p-3 rounded-full bg-gray-100 hover:bg-gray-200 text-slate-600"
+      >
+        <i data-lucide="play" class="w-5 h-5"></i>
+      </button>
+      <button
+        onclick="stopVoice()"
+        class="p-3 rounded-full bg-red-100 hover:bg-red-200 text-red-600"
+      >
+        <i data-lucide="square" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <script>
+      const SYMPTOMS = [
+        "fever",
+        "cough",
+        "headache",
+        "sore_throat",
+        "runny_nose",
+        "sneezing",
+        "body_ache",
+        "fatigue",
+        "chills",
+        "nausea",
+        "vomiting",
+        "diarrhea",
+        "shortness_of_breath",
+        "congestion",
+        "watery_eyes",
+        "itchy_eyes",
+        "joint_pain",
+        "muscle_pain",
+        "abdominal_pain",
+        "chest_pain",
+        "dizziness",
+        "migraine",
+        "rash",
+        "back_pain",
+        "neck_pain",
+        "insomnia",
+        "anxiety",
+        "dry_skin",
+        "sweating",
+        "weakness",
+      ];
+
+      let selected = [],
+        currentUserId = sessionStorage.getItem("token"),
+        userLat = null,
+        userLon = null,
+        lastPlanText = "";
+
+      window.speechSynthesis.getVoices();
+
+      // --- VOICE LOGIC ---
+      function toggleVoice(inputId, btnId) {
+        if (!("webkitSpeechRecognition" in window))
+          return alert("Use Chrome for voice.");
+        const recognition = new webkitSpeechRecognition();
+        const btn = document.getElementById(btnId);
+        recognition.lang = document.getElementById("lang-select").value;
+        recognition.start();
+        recognition.onstart = () => {
+          btn.classList.add("mic-active");
+          document.getElementById(inputId).placeholder = "Listening...";
+        };
+        recognition.onend = () => {
+          btn.classList.remove("mic-active");
+          document.getElementById(inputId).placeholder = "Type or speak...";
+        };
+        recognition.onresult = (e) => {
+          const txt = e.results[0][0].transcript;
+          document.getElementById(inputId).value = txt;
+          if (inputId === "cp-search") filterS(txt);
+          if (inputId === "c-in") sendChat();
+        };
+      }
+
+      function speakText(text) {
+        window.speechSynthesis.cancel();
+        const cleanText = text.replace(/[*#_`]/g, "").replace(/\[.*?\]/g, "");
+        const u = new SpeechSynthesisUtterance(cleanText);
+        u.lang = document.getElementById("lang-select").value;
+
+        // Show Controls
+        document.getElementById("voice-controls").classList.remove("hidden");
+        document.getElementById("voice-controls").classList.add("show");
+
+        u.onend = () => {
+          document.getElementById("voice-controls").classList.remove("show");
+          setTimeout(
+            () =>
+              document.getElementById("voice-controls").classList.add("hidden"),
+            300
+          );
+        };
+
+        window.speechSynthesis.speak(u);
+      }
+
+      function pauseVoice() {
+        window.speechSynthesis.pause();
+      }
+
+      function resumeVoice() {
+        window.speechSynthesis.resume();
+      }
+
+      function stopVoice() {
+        window.speechSynthesis.cancel();
+      }
+
+      function speakResult() {
+        speakText(lastPlanText || "No plan available.");
+      }
+
+      // --- APP LOGIC ---
+      function switchTab(id) {
+        document
+          .querySelectorAll(".view-tab")
+          .forEach((e) => e.classList.add("hidden"));
+        document.getElementById("tab-" + id).classList.remove("hidden");
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((b) => b.classList.remove("nav-active"));
+        if (document.getElementById("btn-" + id))
+          document.getElementById("btn-" + id).classList.add("nav-active");
+      }
+
+      function showPage(p) {
+        ["welcome", "login", "register", "app"].forEach((i) =>
+          document.getElementById(`page-${i}`).classList.add("hidden")
+        );
+        document.getElementById(`page-${p}`).classList.remove("hidden");
+        if (p === "app") {
+          lucide.createIcons();
+          loadHistory();
+          filterS("");
+          switchTab("plan");
+        }
+      }
+
+      function logout() {
+        sessionStorage.removeItem("token");
+        currentUserId = null;
+        showPage("welcome");
+      }
+
+      async function auth(type) {
+        const e = document.getElementById(
+            type === "login" ? "l-email" : "r-email"
+          ).value,
+          p = document.getElementById(
+            type === "login" ? "l-pass" : "r-pass"
+          ).value,
+          ph =
+            type === "register"
+              ? document.getElementById("r-phone").value
+              : null,
+          msg = document.getElementById(type === "login" ? "l-msg" : "r-msg");
+
+        try {
+          const res = await fetch(`/auth/${type}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: e,
+              password: p,
+              phone: ph,
+            }),
+          });
+          const d = await res.json();
+          if (res.ok) {
+            if (type === "login") {
+              sessionStorage.setItem("token", d.user_id);
+              currentUserId = d.user_id;
+              showPage("app");
+            } else {
+              msg.innerText = "Success! Login now.";
+              msg.classList.remove("hidden", "text-red-500");
+              msg.classList.add("text-green-600");
+            }
+          } else {
+            msg.innerText = d.error;
+            msg.classList.remove("hidden");
+          }
+        } catch (err) {
+          alert("Connection Error");
+        }
+      }
+
+      function getMyLocation() {
+        if (!navigator.geolocation) return alert("No GPS");
+        const btn = document.querySelector('button[onclick="getMyLocation()"]');
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Locating...`;
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            userLat = pos.coords.latitude;
+            userLon = pos.coords.longitude;
+            document.getElementById("d-loc").value = `${userLat.toFixed(
+              5
+            )}, ${userLon.toFixed(5)}`;
+            btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> GPS Active`;
+            btn.className =
+              "bg-green-600 text-white px-5 py-2 rounded-xl font-bold flex items-center gap-2 shadow-md transition";
+            lucide.createIcons();
+            findDocs();
+          },
+          () => {
+            alert("GPS Denied");
+            btn.innerText = "Use GPS";
+          },
+          {
+            enableHighAccuracy: true,
+          }
+        );
+      }
+
+      async function findDocs() {
+        const spec = document.getElementById("d-spec").value || "Hospital",
+          loc = document.getElementById("d-loc").value || "Nearby";
+        let mapQuery = `${spec} near ${loc}`;
+        if (userLat && userLon && loc.includes(userLat.toFixed(5))) {
+          mapQuery = `${spec} near ${userLat},${userLon}`;
+          loc = `${userLat},${userLon}`;
+        }
+        document.getElementById(
+          "gmap-frame"
+        ).src = `https://maps.google.com/maps?q=${encodeURIComponent(
+          mapQuery
+        )}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
+        const list = document.getElementById("d-list");
+        list.innerHTML =
+          '<p class="text-slate-400 p-2 animate-pulse">Scanning...</p>';
+        const pl = {
+          specialty: spec,
+          location: loc,
+        };
+        if (userLat && userLon) {
+          pl.lat = userLat;
+          pl.lon = userLon;
+        }
+        try {
+          const res = await fetch("/doctors", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(pl),
+          });
+          const d = await res.json();
+          list.innerHTML = "";
+          if (d.result && d.result.length > 0) {
+            d.result.forEach((doc) => {
+              list.innerHTML += `<div onclick="focusMap('${doc.name}','${
+                doc.address
+              }')" class="bg-slate-50 p-4 rounded-xl border border-slate-100 hover:shadow-md transition hover:bg-white group cursor-pointer hover:border-blue-400"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-slate-800 group-hover:text-blue-600 transition">${
+                doc.name
+              }</h4><span class="bg-white text-green-700 border border-green-200 text-xs font-bold px-2 py-1 rounded-md">⭐ ${
+                doc.rating || "N/A"
+              }</span></div><p class="text-xs text-slate-500 truncate"><i data-lucide="map-pin" class="w-3 h-3 inline"></i> ${
+                doc.address
+              }</p></div>`;
+            });
+            lucide.createIcons();
+          } else {
+            list.innerHTML =
+              '<p class="text-slate-400 text-center text-sm">No details found. Map works above.</p>';
+          }
+        } catch (e) {
+          list.innerHTML = '<p class="text-red-400 text-sm">Error.</p>';
+        }
+      }
+
+      function focusMap(n, a) {
+        document.getElementById(
+          "gmap-frame"
+        ).src = `https://maps.google.com/maps?q=${encodeURIComponent(
+          n + " " + a
+        )}&t=&z=17&ie=UTF8&iwloc=&output=embed`;
+      }
+
+      function filterS(q) {
+        const b = document.getElementById("s-box");
+        b.innerHTML = "";
+        SYMPTOMS.filter((s) => s.includes(q.toLowerCase())).forEach((s) => {
+          const d = document.createElement("div");
+          d.className = `p-3 rounded-lg cursor-pointer transition border font-medium text-sm flex items-center gap-2 ${
+            selected.includes(s)
+              ? "bg-blue-500 text-white border-blue-500 shadow-md"
+              : "bg-white text-slate-600 hover:bg-slate-50 border-slate-200"
+          }`;
+          d.innerHTML = selected.includes(s)
+            ? `<i data-lucide="check" class="w-3 h-3"></i> ${s.replace(
+                /_/g,
+                " "
+              )}`
+            : s.replace(/_/g, " ");
+          d.onclick = () => {
+            if (selected.includes(s))
+              selected = selected.filter((x) => x !== s);
+            else selected.push(s);
+            filterS(document.getElementById("cp-search").value);
+          };
+          b.appendChild(d);
+        });
+        lucide.createIcons();
+      }
+
+      // --- UPDATED GET PLAN FUNCTION ---
+      async function getPlan() {
+        const age = document.getElementById("cp-age").value || 30,
+          lang = document.getElementById("lang-select").value;
+        if (!selected.length) return alert("Select symptoms!");
+        const btn = document.querySelector('button[onclick="getPlan()"]');
+        const old = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Analyzing...`;
+        btn.disabled = true;
+
+        // --- NEW: GATHER VITALS ---
+        const vitals = {
+          temperature: document.getElementById("v-temp").value,
+          systolic_bp: document.getElementById("v-sys").value,
+          heart_rate: document.getElementById("v-hr").value,
+          spo2: document.getElementById("v-spo2").value,
+        };
+
+        try {
+          const res = await fetch("/recommend", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              symptoms: selected,
+              age,
+              user_id: currentUserId,
+              language: lang,
+              vitals: vitals, // Sending Vitals
+            }),
+          });
+          const d = await res.json();
+
+          document.getElementById("r-disease").innerText = d.disease;
+
+          // Handle Emergency Styling
+          const resBox = document.getElementById("res-box");
+          if (d.is_emergency) {
+            resBox.classList.remove("border-blue-500");
+            resBox.classList.add("border-red-500");
+            document.getElementById("r-disease").classList.add("text-red-600");
+          } else {
+            resBox.classList.remove("border-red-500");
+            resBox.classList.add("border-blue-500");
+            document
+              .getElementById("r-disease")
+              .classList.remove("text-red-600");
+          }
+
+          const contentText = `Medicine: ${d.medicine}\nDiet: ${d.diet}\nPrecautions: ${d.precautions}`;
+          lastPlanText = `Condition: ${d.disease}. ${d.description}. ${contentText}`;
+          document.getElementById(
+            "r-content"
+          ).innerHTML = `<p class="text-slate-600 mb-6 text-lg leading-relaxed">${d.description}</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-blue-50 p-5 rounded-2xl"><strong class="text-blue-700 block mb-1">Medicine</strong> ${d.medicine}</div><div class="bg-green-50 p-5 rounded-2xl"><strong class="text-green-700 block mb-1">Diet</strong> ${d.diet}</div><div class="bg-amber-50 p-5 rounded-2xl"><strong class="text-amber-700 block mb-1">Lifestyle</strong> ${d.workouts}</div><div class="bg-red-50 p-5 rounded-2xl"><strong class="text-red-700 block mb-1">Precautions</strong> ${d.precautions}</div></div>`;
+          resBox.classList.remove("hidden");
+          resBox.scrollIntoView({
+            behavior: "smooth",
+          });
+          speakResult();
+          loadHistory();
+        } catch (e) {
+          alert("Error");
+        }
+        btn.innerHTML = old;
+        btn.disabled = false;
+        lucide.createIcons();
+      }
+
+      async function downloadReport() {
+        const payload = {
+          disease: document.getElementById("r-disease").innerText,
+          description: lastPlanText,
+          medicine: "See PDF",
+          diet: "",
+          workouts: "",
+          precautions: "",
+        };
+        try {
+          const res = await fetch("/download_report", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+          if (res.ok) {
+            const b = await res.blob(),
+              u = window.URL.createObjectURL(b),
+              a = document.createElement("a");
+            a.href = u;
+            a.download = "Report.pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }
+        } catch (e) {}
+      }
+
+      async function sendChat() {
+        const inp = document.getElementById("c-in"),
+          txt = inp.value,
+          lang = document.getElementById("lang-select").value;
+        if (!txt) return;
+        const box = document.getElementById("chat-box");
+        box.innerHTML += `<div class="flex justify-end fade-in"><div class="chat-bubble user-bubble shadow">${txt}</div></div>`;
+        inp.value = "";
+        box.scrollTop = box.scrollHeight;
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: txt,
+            language: lang,
+          }),
+        });
+        const d = await res.json();
+        const ttsBtn = `<button onclick="speakText('${d.response.replace(
+          /'/g,
+          "\\'"
+        )}')" class="ml-2 text-gray-400 hover:text-blue-600"><i data-lucide="volume-2" class="w-4 h-4"></i></button>`;
+        const clean = marked.parse(d.response);
+        box.innerHTML += `<div class="flex justify-start fade-in items-start"><div class="chat-bubble ai-bubble shadow">${clean}</div>${ttsBtn}</div>`;
+        box.scrollTop = box.scrollHeight;
+        lucide.createIcons();
+        speakText(d.response);
+      }
+
+      async function loadHistory() {
+        const list = document.getElementById("hist-list");
+        try {
+          const res = await fetch(`/history?user_id=${currentUserId}`);
+          const d = await res.json();
+          list.innerHTML = "";
+          d.forEach((i) => {
+            list.innerHTML += `<div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-2"><h4 class="font-bold text-blue-900">${i.disease}</h4><span class="text-xs text-slate-400">${i.date}</span><p class="text-sm text-slate-600 line-clamp-2">${i.description}</p></div>`;
+          });
+        } catch (e) {}
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        lucide.createIcons();
+        if (currentUserId) showPage("app");
+        document.getElementById("c-in").addEventListener("keypress", (e) => {
+          if (e.key === "Enter") sendChat();
+        });
+        document.getElementById("d-loc").addEventListener("keypress", (e) => {
+          if (e.key === "Enter") findDocs();
+        });
+      });
+    </script>
+  </body>
+</html>

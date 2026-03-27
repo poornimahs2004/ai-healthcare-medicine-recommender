@@ -1,0 +1,406 @@
+{% extends "base.html" %} {% block content %}
+<div class="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col">
+  <div
+    class="glass-card p-4 mb-4 flex flex-wrap justify-between items-center gap-4 bg-white shrink-0"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-lg"
+      >
+        <i data-lucide="bot" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h2 class="font-bold text-slate-800 text-lg" data-i18n="chat_title">
+          Dr. AI & Ayurveda
+        </h2>
+        <p class="text-xs text-slate-500" data-i18n="chat_subtitle">
+          Dual-Engine Medical Intelligence
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        onclick="clearChat()"
+        class="p-2 rounded-full bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-600 transition border border-slate-200"
+        title="Clear Conversation"
+      >
+        <i data-lucide="trash-2" class="w-5 h-5"></i>
+      </button>
+
+      <button
+        id="sound-toggle"
+        onclick="toggleGlobalSound()"
+        class="p-2 rounded-full bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-600 transition border border-slate-200"
+        title="Toggle Auto-Read"
+      >
+        <i data-lucide="volume-2" class="w-5 h-5"></i>
+      </button>
+
+      <select
+        id="chat-lang"
+        onchange="syncLanguage(this.value)"
+        class="bg-slate-50 border border-slate-200 text-sm rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+      >
+        <option value="English">🇬🇧 English</option>
+        <option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Kannada">🇮🇳 Kannada</option>
+        <option value="Telugu">🇮🇳 Telugu</option>
+        <option value="Tamil">🇮🇳 Tamil</option>
+        <option value="Malayalam">🇮🇳 Malayalam</option>
+        <option value="Marathi">🇮🇳 Marathi</option>
+        <option value="Bengali">🇮🇳 Bengali</option>
+        <option value="Gujarati">🇮🇳 Gujarati</option>
+        <option value="Punjabi">🇮🇳 Punjabi</option>
+      </select>
+    </div>
+  </div>
+
+  <div
+    id="chat-box"
+    class="flex-grow overflow-y-auto p-4 space-y-6 scroll-smooth pb-32"
+  >
+    <div class="flex gap-3 fade-in">
+      <div
+        class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 flex-shrink-0"
+      >
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+      </div>
+      <div
+        class="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[90%]"
+      >
+        <p class="text-slate-700 text-sm" data-i18n="chat_welcome">
+          Namaste! Select your language and tell me your symptoms. I will
+          provide both Medical Advice and Ayurvedic Remedies.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="fixed bottom-4 left-0 right-0 px-4 md:px-0 max-w-4xl mx-auto z-50"
+  >
+    <div
+      class="bg-white/90 backdrop-blur-md p-2 rounded-2xl border border-slate-200 shadow-2xl flex items-end gap-2"
+    >
+      <div class="flex-grow relative">
+        <textarea
+          id="c-in"
+          rows="1"
+          class="w-full bg-transparent p-4 pr-12 outline-none text-slate-700 resize-none max-h-32"
+          data-i18n="chat_placeholder"
+          placeholder="Type your symptoms here..."
+          oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
+        ></textarea>
+        <button
+          onclick="toggleVoiceInput()"
+          id="mic-btn"
+          class="absolute right-3 bottom-3 p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-purple-600 transition"
+        >
+          <i data-lucide="mic" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <button
+        onclick="sendChat()"
+        class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 rounded-xl shadow-lg hover:shadow-purple-500/30 transition hover:scale-105 active:scale-95"
+      >
+        <i data-lucide="send" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- STATE ---
+  let globalSoundOn = true;
+  const audioCache = {};
+
+  // 1. RESTORE MEMORY (This was missing)
+  let chatHistory = [];
+
+  // --- UTILS ---
+  function formatResponseText(text) {
+    if (!text) return "No information available.";
+    let cleanText = text.replace(/•/g, "\n\n• ").replace(/: /g, ":\n");
+    if (typeof marked !== "undefined") return marked.parse(cleanText);
+    return cleanText;
+  }
+
+  // Sync dropdown
+  function syncLanguage(val) {
+    const reverseMap = {
+      English: "en-US",
+      Hindi: "hi-IN",
+      Kannada: "kn-IN",
+      Telugu: "te-IN",
+      Tamil: "ta-IN",
+      Malayalam: "ml-IN",
+      Marathi: "mr-IN",
+      Bengali: "bn-IN",
+      Gujarati: "gu-IN",
+      Punjabi: "pa-IN",
+    };
+    if (reverseMap[val] && typeof changeLanguage === "function")
+      changeLanguage(reverseMap[val]);
+  }
+
+  // --- AUDIO ---
+  function toggleGlobalSound() {
+    globalSoundOn = !globalSoundOn;
+    const btn = document.getElementById("sound-toggle");
+    if (globalSoundOn) {
+      btn.innerHTML = `<i data-lucide="volume-2" class="w-5 h-5"></i>`;
+      btn.classList.remove("bg-red-50", "text-red-500");
+      btn.classList.add("bg-slate-100", "text-slate-600");
+    } else {
+      window.speechSynthesis.cancel();
+      btn.innerHTML = `<i data-lucide="volume-x" class="w-5 h-5"></i>`;
+      btn.classList.add("bg-red-50", "text-red-500");
+    }
+    lucide.createIcons();
+  }
+
+  function playAudio(btnId) {
+    if (!globalSoundOn) return alert("Please turn on sound (Top Right).");
+    const text = audioCache[btnId];
+    if (!text) return;
+
+    window.speechSynthesis.cancel();
+    document.querySelectorAll(".audio-btn").forEach((btn) => {
+      btn.dataset.playing = "false";
+      btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i>`;
+    });
+
+    const btn = document.getElementById(btnId);
+    if (btn.dataset.playing === "true") {
+      btn.dataset.playing = "false";
+      return;
+    }
+
+    btn.dataset.playing = "true";
+    btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i>`;
+    lucide.createIcons();
+
+    const u = new SpeechSynthesisUtterance(
+      text.replace(/[*#•_`]/g, "").replace(/\n/g, ". ")
+    );
+    const langMap = {
+      Hindi: "hi-IN",
+      Kannada: "kn-IN",
+      Tamil: "ta-IN",
+      Telugu: "te-IN",
+      Malayalam: "ml-IN",
+      English: "en-US",
+      Marathi: "mr-IN",
+      Bengali: "bn-IN",
+      Gujarati: "gu-IN",
+      Punjabi: "pa-IN",
+    };
+    u.lang = langMap[document.getElementById("chat-lang").value] || "en-US";
+
+    u.onend = () => {
+      btn.dataset.playing = "false";
+      btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i>`;
+      lucide.createIcons();
+    };
+
+    btn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i>`;
+    lucide.createIcons();
+    window.speechSynthesis.speak(u);
+  }
+
+  function clearChat() {
+    if (!confirm("Clear conversation?")) return;
+    chatHistory = []; // Reset Memory
+    window.speechSynthesis.cancel();
+    const welcomeText = document.querySelector(
+      '[data-i18n="chat_welcome"]'
+    ).innerText;
+    document.getElementById("chat-box").innerHTML = `
+        <div class="flex gap-3 fade-in">
+            <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 flex-shrink-0"><i data-lucide="sparkles" class="w-4 h-4"></i></div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[90%]">
+                <p class="text-slate-700 text-sm">${welcomeText}</p>
+            </div>
+        </div>`;
+    lucide.createIcons();
+  }
+
+  // --- CHAT LOGIC ---
+  async function sendChat() {
+    const inp = document.getElementById("c-in");
+    const txt = inp.value.trim();
+    const lang = document.getElementById("chat-lang").value;
+
+    if (!txt) return;
+
+    const box = document.getElementById("chat-box");
+
+    // User Bubble
+    box.innerHTML += `<div class="flex justify-end fade-in"><div class="bg-slate-800 text-white px-5 py-3 rounded-2xl rounded-tr-none shadow-md max-w-[85%] text-sm leading-relaxed">${txt}</div></div>`;
+    inp.value = "";
+    inp.style.height = "auto";
+    box.scrollTop = box.scrollHeight;
+
+    // Loading
+    const loadId = "loading-" + Date.now();
+    box.innerHTML += `<div id="${loadId}" class="flex gap-3 fade-in"><div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 animate-pulse"><i data-lucide="bot" class="w-4 h-4"></i></div><div class="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm text-slate-400 text-xs">Thinking...</div></div>`;
+
+    try {
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // 2. SEND HISTORY TO BACKEND
+        body: JSON.stringify({
+          query: txt,
+          language: lang,
+          history: chatHistory,
+        }),
+      });
+      const data = await res.json();
+      document.getElementById(loadId).remove();
+
+      // 3. SAVE TO MEMORY
+      // We summarize the turn to keep it context-aware
+      chatHistory.push({
+        user: txt,
+        ai: `Medical Advice: ${data.medical}. Herbal Advice: ${data.herbal}`,
+      });
+
+      // Keep only last 6 turns to prevent token overflow
+      if (chatHistory.length > 6) chatHistory.shift();
+
+      const medId = "btn-med-" + Date.now();
+      const herbId = "btn-herb-" + Date.now();
+      audioCache[medId] = data.medical;
+      audioCache[herbId] = data.herbal;
+
+      // Translation Fallback
+      const currentLangCode = localStorage.getItem("careai_lang") || "en-US";
+      const dict =
+        typeof translations !== "undefined"
+          ? translations[currentLangCode]
+          : null;
+      const lblMed = dict ? dict.lbl_meds : "Medical Advice";
+      const lblHerb = "Ayurvedic Remedy";
+
+      const html = `
+            <div class="flex gap-3 fade-in items-start">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white flex-shrink-0 mt-1 shadow-md">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                </div>
+                <div class="flex flex-col gap-3 w-full max-w-[90%]">
+                    <div class="bg-white border-l-4 border-blue-500 rounded-r-xl rounded-bl-xl shadow-sm p-5 relative group hover:shadow-md transition-all">
+                        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition">
+                            <button id="${medId}" onclick="playAudio('${medId}')" class="audio-btn bg-blue-50 text-blue-600 p-2 rounded-full hover:bg-blue-100 transition"><i data-lucide="play" class="w-4 h-4"></i></button>
+                        </div>
+                        <h4 class="text-blue-700 font-bold text-xs uppercase tracking-wider mb-3 flex items-center gap-2"><i data-lucide="pill" class="w-4 h-4"></i> ${lblMed}</h4>
+                        <div class="pro-text text-sm text-slate-700 formatted-content">${formatResponseText(
+                          data.medical
+                        )}</div>
+                    </div>
+                    <div class="bg-white border-l-4 border-green-500 rounded-r-xl rounded-bl-xl shadow-sm p-5 relative group hover:shadow-md transition-all">
+                        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition">
+                            <button id="${herbId}" onclick="playAudio('${herbId}')" class="audio-btn bg-green-50 text-green-600 p-2 rounded-full hover:bg-green-100 transition"><i data-lucide="play" class="w-4 h-4"></i></button>
+                        </div>
+                        <h4 class="text-green-700 font-bold text-xs uppercase tracking-wider mb-3 flex items-center gap-2"><i data-lucide="leaf" class="w-4 h-4"></i> ${lblHerb}</h4>
+                        <div class="pro-text text-sm text-slate-700 formatted-content">${formatResponseText(
+                          data.herbal
+                        )}</div>
+                    </div>
+                </div>
+            </div>`;
+
+      box.innerHTML += html;
+      box.scrollTop = box.scrollHeight;
+      lucide.createIcons();
+    } catch (e) {
+      document.getElementById(
+        loadId
+      ).innerHTML = `<div class="text-red-500 text-xs">Error connecting.</div>`;
+    }
+  }
+
+  function toggleVoiceInput() {
+    if (!("webkitSpeechRecognition" in window)) return alert("Use Chrome.");
+    const recognition = new webkitSpeechRecognition();
+    const langMap = {
+      Hindi: "hi-IN",
+      Kannada: "kn-IN",
+      Tamil: "ta-IN",
+      Telugu: "te-IN",
+      Malayalam: "ml-IN",
+      English: "en-US",
+      Marathi: "mr-IN",
+      Bengali: "bn-IN",
+      Gujarati: "gu-IN",
+      Punjabi: "pa-IN",
+    };
+    recognition.lang =
+      langMap[document.getElementById("chat-lang").value] || "en-US";
+
+    const btn = document.getElementById("mic-btn");
+    recognition.start();
+
+    recognition.onstart = () =>
+      btn.classList.add("text-red-500", "animate-pulse");
+    recognition.onend = () => {
+      btn.classList.remove("text-red-500", "animate-pulse");
+      sendChat();
+    };
+    recognition.onresult = (e) =>
+      (document.getElementById("c-in").value = e.results[0][0].transcript);
+  }
+
+  document.getElementById("c-in").addEventListener("keypress", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendChat();
+    }
+  });
+
+  // Init
+  lucide.createIcons();
+  const savedLang = localStorage.getItem("careai_lang") || "en-US";
+  if (typeof changeLanguage === "function") changeLanguage(savedLang);
+  const langMapReverse = {
+    "en-US": "English",
+    "hi-IN": "Hindi",
+    "kn-IN": "Kannada",
+    "te-IN": "Telugu",
+    "ta-IN": "Tamil",
+    "ml-IN": "Malayalam",
+    "mr-IN": "Marathi",
+    "bn-IN": "Bengali",
+    "gu-IN": "Gujarati",
+    "pa-IN": "Punjabi",
+  };
+  if (langMapReverse[savedLang])
+    document.getElementById("chat-lang").value = langMapReverse[savedLang];
+</script>
+
+<style>
+  .pro-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #334155;
+  }
+  .pro-text ul {
+    list-style-type: disc !important;
+    padding-left: 1.25rem !important;
+    margin: 0.5rem 0 !important;
+  }
+  .pro-text li {
+    margin-bottom: 0.5rem !important;
+    padding-left: 0.25rem !important;
+    display: list-item !important;
+  }
+  .pro-text strong {
+    font-weight: 700;
+    color: #1e40af;
+    background-color: #dbeafe;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+</style>
+{% endblock %}
