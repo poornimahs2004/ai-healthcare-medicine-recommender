@@ -6,4 +6,4 @@ gunicorn
 mysql-connector-python
 Pillow
 flask-cors
-from fpdf import FPDF
+fpdf 
