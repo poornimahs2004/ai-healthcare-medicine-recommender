@@ -5,3 +5,4 @@ scikit-learn
 gunicorn
 mysql-connector-python
 Pillow
+flask-cors
