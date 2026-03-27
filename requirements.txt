@@ -7,3 +7,4 @@ mysql-connector-python
 Pillow
 flask-cors
 fpdf 
+python-dotenv
