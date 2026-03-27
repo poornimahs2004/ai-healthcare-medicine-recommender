@@ -8,3 +8,4 @@ Pillow
 flask-cors
 fpdf 
 python-dotenv
+google-generativeai
